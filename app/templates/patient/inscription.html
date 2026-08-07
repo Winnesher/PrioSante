@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription Patient — PrioSanté{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <h1 style="text-align: center; margin-bottom: 0.5rem; font-weight: 800;" data-i18n="inscription.title">Prenez Rendez-vous en Ligne</h1>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;" data-i18n="inscription.subtitle">
+        Remplissez le formulaire ci-dessous pour obtenir automatiquement une heure de passage optimisée selon votre état.
+    </p>
+
+    <!-- Wizard Steps Indicator -->
+    <div class="wizard-steps">
+        <div class="step-item active" id="step-tab-1">
+            <div class="step-number">1</div>
+            <div class="step-title" data-i18n="inscription.step1.tab">Vos Coordonnées</div>
+        </div>
+        <div class="step-item" id="step-tab-2">
+            <div class="step-number">2</div>
+            <div class="step-title" data-i18n="inscription.step2.tab">Choix du Service</div>
+        </div>
+        <div class="step-item" id="step-tab-3">
+            <div class="step-number">3</div>
+            <div class="step-title" data-i18n="inscription.step3.tab">Questionnaire Symptômes</div>
+        </div>
+    </div>
+
+    <form action="{{ url_for('patient.inscription') }}" method="POST" id="inscriptionForm" onsubmit="return validerSoumission(event)">
+        
+        <!-- Étape 1 : Coordonnées -->
+        <div class="wizard-step-content" id="step-1">
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="inscription.step1.heading">Étape 1 : Informations Personnelles</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" data-i18n="inscription.field.lastName">Nom *</label>
+                    <input type="text" name="nom" class="form-control" placeholder="ex: KOGNON" data-i18n-placeholder="inscription.field.lastNamePh" pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+" title="Le nom ne doit contenir que des lettres" oninput="lettersOnly(this)" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="inscription.field.firstName">Prénom *</label>
+                    <input type="text" name="prenom" class="form-control" placeholder="ex: Romeo" data-i18n-placeholder="inscription.field.firstNamePh" pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+" title="Le prénom ne doit contenir que des lettres" oninput="lettersOnly(this)" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" data-i18n="inscription.field.phone">Numéro de Téléphone (SMS) *</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <div class="phone-code-picker" id="phoneCodePicker">
+                            <button type="button" class="phone-code-toggle" id="phoneCodeToggle" onclick="togglePhoneCodeList()">
+                                <img src="https://flagcdn.com/24x18/tg.png" alt="Togo" id="phoneCodeFlag">
+                                <span id="phoneCodeValue">+228</span>
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                            <div class="phone-code-list" id="phoneCodeList">
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+228" data-flag="tg" data-name="Togo"><img src="https://flagcdn.com/24x18/tg.png" alt="Togo"><span>Togo +228</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+229" data-flag="bj" data-name="Bénin"><img src="https://flagcdn.com/24x18/bj.png" alt="Bénin"><span>Bénin +229</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+226" data-flag="bf" data-name="Burkina Faso"><img src="https://flagcdn.com/24x18/bf.png" alt="Burkina Faso"><span>Burkina Faso +226</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+225" data-flag="ci" data-name="Côte d'Ivoire"><img src="https://flagcdn.com/24x18/ci.png" alt="Côte d'Ivoire"><span>Côte d'Ivoire +225</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+233" data-flag="gh" data-name="Ghana"><img src="https://flagcdn.com/24x18/gh.png" alt="Ghana"><span>Ghana +233</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+223" data-flag="ml" data-name="Mali"><img src="https://flagcdn.com/24x18/ml.png" alt="Mali"><span>Mali +223</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+227" data-flag="ne" data-name="Niger"><img src="https://flagcdn.com/24x18/ne.png" alt="Niger"><span>Niger +227</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+234" data-flag="ng" data-name="Nigeria"><img src="https://flagcdn.com/24x18/ng.png" alt="Nigeria"><span>Nigeria +234</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+221" data-flag="sn" data-name="Sénégal"><img src="https://flagcdn.com/24x18/sn.png" alt="Sénégal"><span>Sénégal +221</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+224" data-flag="gn" data-name="Guinée"><img src="https://flagcdn.com/24x18/gn.png" alt="Guinée"><span>Guinée +224</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+245" data-flag="gw" data-name="Guinée-Bissau"><img src="https://flagcdn.com/24x18/gw.png" alt="Guinée-Bissau"><span>Guinée-Bissau +245</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+232" data-flag="sl" data-name="Sierra Leone"><img src="https://flagcdn.com/24x18/sl.png" alt="Sierra Leone"><span>Sierra Leone +232</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+231" data-flag="lr" data-name="Liberia"><img src="https://flagcdn.com/24x18/lr.png" alt="Liberia"><span>Liberia +231</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+220" data-flag="gm" data-name="Gambie"><img src="https://flagcdn.com/24x18/gm.png" alt="Gambie"><span>Gambie +220</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+238" data-flag="cv" data-name="Cap-Vert"><img src="https://flagcdn.com/24x18/cv.png" alt="Cap-Vert"><span>Cap-Vert +238</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+222" data-flag="mr" data-name="Mauritanie"><img src="https://flagcdn.com/24x18/mr.png" alt="Mauritanie"><span>Mauritanie +222</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+237" data-flag="cm" data-name="Cameroun"><img src="https://flagcdn.com/24x18/cm.png" alt="Cameroun"><span>Cameroun +237</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+241" data-flag="ga" data-name="Gabon"><img src="https://flagcdn.com/24x18/ga.png" alt="Gabon"><span>Gabon +241</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+242" data-flag="cg" data-name="Congo-Brazzaville"><img src="https://flagcdn.com/24x18/cg.png" alt="Congo-Brazzaville"><span>Congo-Brazzaville +242</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+243" data-flag="cd" data-name="RD Congo"><img src="https://flagcdn.com/24x18/cd.png" alt="RD Congo"><span>RD Congo +243</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+235" data-flag="td" data-name="Tchad"><img src="https://flagcdn.com/24x18/td.png" alt="Tchad"><span>Tchad +235</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+236" data-flag="cf" data-name="République Centrafricaine"><img src="https://flagcdn.com/24x18/cf.png" alt="République Centrafricaine"><span>Rép. Centrafricaine +236</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+240" data-flag="gq" data-name="Guinée équatoriale"><img src="https://flagcdn.com/24x18/gq.png" alt="Guinée équatoriale"><span>Guinée équatoriale +240</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+212" data-flag="ma" data-name="Maroc"><img src="https://flagcdn.com/24x18/ma.png" alt="Maroc"><span>Maroc +212</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+213" data-flag="dz" data-name="Algérie"><img src="https://flagcdn.com/24x18/dz.png" alt="Algérie"><span>Algérie +213</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+216" data-flag="tn" data-name="Tunisie"><img src="https://flagcdn.com/24x18/tn.png" alt="Tunisie"><span>Tunisie +216</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+20" data-flag="eg" data-name="Égypte"><img src="https://flagcdn.com/24x18/eg.png" alt="Égypte"><span>Égypte +20</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+218" data-flag="ly" data-name="Libye"><img src="https://flagcdn.com/24x18/ly.png" alt="Libye"><span>Libye +218</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+254" data-flag="ke" data-name="Kenya"><img src="https://flagcdn.com/24x18/ke.png" alt="Kenya"><span>Kenya +254</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+251" data-flag="et" data-name="Éthiopie"><img src="https://flagcdn.com/24x18/et.png" alt="Éthiopie"><span>Éthiopie +251</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+250" data-flag="rw" data-name="Rwanda"><img src="https://flagcdn.com/24x18/rw.png" alt="Rwanda"><span>Rwanda +250</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+255" data-flag="tz" data-name="Tanzanie"><img src="https://flagcdn.com/24x18/tz.png" alt="Tanzanie"><span>Tanzanie +255</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+256" data-flag="ug" data-name="Ouganda"><img src="https://flagcdn.com/24x18/ug.png" alt="Ouganda"><span>Ouganda +256</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+27" data-flag="za" data-name="Afrique du Sud"><img src="https://flagcdn.com/24x18/za.png" alt="Afrique du Sud"><span>Afrique du Sud +27</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+33" data-flag="fr" data-name="France"><img src="https://flagcdn.com/24x18/fr.png" alt="France"><span>France +33</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+32" data-flag="be" data-name="Belgique"><img src="https://flagcdn.com/24x18/be.png" alt="Belgique"><span>Belgique +32</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+1" data-flag="ca" data-name="Canada"><img src="https://flagcdn.com/24x18/ca.png" alt="Canada"><span>Canada +1</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+1" data-flag="us" data-name="États-Unis"><img src="https://flagcdn.com/24x18/us.png" alt="États-Unis"><span>États-Unis +1</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+44" data-flag="gb" data-name="Royaume-Uni"><img src="https://flagcdn.com/24x18/gb.png" alt="Royaume-Uni"><span>Royaume-Uni +44</span></div>
+                                <div class="phone-code-item" onclick="selectPhoneCode(this)" data-code="+49" data-flag="de" data-name="Allemagne"><img src="https://flagcdn.com/24x18/de.png" alt="Allemagne"><span>Allemagne +49</span></div>
+                            </div>
+                        </div>
+                        <input type="tel" id="telephoneLocal" class="form-control" placeholder="90 12 34 56" data-i18n-placeholder="inscription.field.phonePh" inputmode="numeric" pattern="[0-9 ]+" oninput="updateTelephoneComplet()" required>
+                    </div>
+                    <input type="hidden" name="telephone" id="telephoneComplet">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="inscription.field.dob">Date de Naissance</label>
+                    <input type="date" name="date_naissance" class="form-control" min="{{ date_min_naissance }}" max="{{ date_max_naissance }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" data-i18n="inscription.field.gender">Genre</label>
+                <select name="genre" class="form-control">
+                    <option value="M" data-i18n="inscription.field.genderM">Masculin</option>
+                    <option value="F" data-i18n="inscription.field.genderF">Féminin</option>
+                    <option value="Autre" data-i18n="inscription.field.genderOther">Autre / Préfère ne pas préciser</option>
+                </select>
+            </div>
+
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="nextStep(2)" data-i18n="inscription.step1.next">Suivant : Choix du Service ➔</button>
+            </div>
+        </div>
+
+        <!-- Étape 2 : Service -->
+        <div class="wizard-step-content" id="step-2" style="display: none;">
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="inscription.step2.heading">Étape 2 : Sélection du Service Médical</h3>
+
+            <div class="form-group">
+                <label class="form-label" data-i18n="inscription.step2.label">Choisissez la spécialité ou le service concerné *</label>
+                {% for service in services %}
+                    <div style="background: var(--surface-card-soft); border: 2px solid var(--primary); padding: 1.25rem; border-radius: 12px; margin-bottom: 1rem; cursor: pointer;">
+                        <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
+                            <input type="radio" name="service_id" value="{{ service.id }}" checked style="width: 20px; height: 20px; accent-color: var(--primary);">
+                            <div>
+                                <strong style="font-size: 1.1rem; color: var(--primary-light);">{{ service.nom }}</strong>
+                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">{{ service.description }}</p>
+                                <span style="font-size: 0.8rem; background: rgba(13,148,136,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary-light); margin-top: 0.5rem; display: inline-block;">
+                                    ⏱️ <span data-i18n="inscription.step2.duration">Durée moyenne de consultation</span> : {{ service.duree_moyenne_consultation }} min
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="prevStep(1)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <span data-i18n="inscription.btn.previous">Précédent</span></button>
+                <button type="button" class="btn btn-primary" onclick="nextStep(3)" data-i18n="inscription.step2.next">Suivant : Symptômes ➔</button>
+            </div>
+        </div>
+
+        <!-- Étape 3 : Symptômes -->
+        <div class="wizard-step-content" id="step-3" style="display: none;">
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="inscription.step3.heading">Étape 3 : Évaluation des Symptômes</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem;" data-i18n="inscription.step3.instructions">
+                Cochez toutes les cases correspondant aux symptômes que vous ou le patient ressentez actuellement.
+            </p>
+
+            <div class="symptoms-grid">
+                {% for code, data in bareme.items() %}
+                    <label class="symptom-card">
+                        <input type="checkbox" name="symptomes" value="{{ code }}" data-points="{{ data.points }}" onchange="updateEstimatedScore()">
+                        <div>
+                            <strong>{{ data.libelle }}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);"><span data-i18n="inscription.step3.points">Points</span> : +{{ data.points }}</div>
+                        </div>
+                    </label>
+                {% endfor %}
+            </div>
+
+            <div style="background: var(--surface-card-soft); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: 12px; margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="inscription.step3.scoreLabel">Score indicatif :</span>
+                    <div id="scoreDisplay" style="font-size: 1.5rem; font-weight: 800; color: var(--primary-light);">0 point</div>
+                </div>
+                <div id="urgenceAlert" style="display: none; align-items: center; gap: 0.4rem; color: #f87171; font-weight: 700; font-size: 0.9rem;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span data-i18n="inscription.step3.urgenceAlert">Attention : score élevé, une redirection vers les urgences sera nécessaire.</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="prevStep(2)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> <span data-i18n="inscription.btn.previous">Précédent</span></button>
+                <button type="submit" class="btn btn-success btn-lg"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> <span data-i18n="inscription.step3.submit">Valider et Obtenir l'Heure de RDV</span></button>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="modal-overlay" id="validationModal">
+        <div class="modal-box">
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+            <p id="validationModalMessage"></p>
+            <button type="button" class="btn btn-primary btn-pill" onclick="closeValidationModal()" data-i18n="inscription.modal.ok">Compris</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showStep(step) {
+    document.querySelectorAll('.wizard-step-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+
+    document.getElementById('step-' + step).style.display = 'block';
+    document.getElementById('step-tab-' + step).classList.add('active');
+}
+
+const NAME_PATTERN = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/;
+
+function lettersOnly(input) {
+    input.value = input.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g, '');
+}
+
+function updateTelephoneComplet() {
+    const indicatif = document.getElementById('phoneCodeValue').textContent.trim();
+    const local = document.getElementById('telephoneLocal').value.replace(/\D/g, '');
+    document.getElementById('telephoneComplet').value = local ? indicatif + local : '';
+}
+
+function togglePhoneCodeList() {
+    document.getElementById('phoneCodeList').classList.toggle('open');
+}
+
+function selectPhoneCode(el) {
+    document.getElementById('phoneCodeValue').textContent = el.getAttribute('data-code');
+    const flagImg = document.getElementById('phoneCodeFlag');
+    flagImg.src = `https://flagcdn.com/24x18/${el.getAttribute('data-flag')}.png`;
+    flagImg.alt = el.getAttribute('data-name');
+    document.getElementById('phoneCodeList').classList.remove('open');
+    updateTelephoneComplet();
+}
+
+document.addEventListener('click', function (e) {
+    const picker = document.getElementById('phoneCodePicker');
+    if (picker && !picker.contains(e.target)) {
+        document.getElementById('phoneCodeList').classList.remove('open');
+    }
+});
+
+function showValidationModal(message) {
+    document.getElementById('validationModalMessage').textContent = message;
+    document.getElementById('validationModal').classList.add('open');
+}
+
+function closeValidationModal() {
+    document.getElementById('validationModal').classList.remove('open');
+}
+
+function validerSoumission(event) {
+    const auMoinsUnSymptome = document.querySelectorAll('input[name="symptomes"]:checked').length > 0;
+    if (!auMoinsUnSymptome) {
+        event.preventDefault();
+        showValidationModal(window.PrioSanteI18n.t('inscription.js.needSymptom', 'Veuillez cocher au moins un symptôme avant de valider votre demande.'));
+        return false;
+    }
+    return true;
+}
+
+document.addEventListener('click', function (e) {
+    if (e.target.id === 'validationModal') {
+        closeValidationModal();
+    }
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeValidationModal();
+    }
+});
+
+function nextStep(step) {
+    if (step === 2) {
+        const nom = document.querySelector('input[name="nom"]').value.trim();
+        const prenom = document.querySelector('input[name="prenom"]').value.trim();
+        const telLocal = document.getElementById('telephoneLocal').value.trim();
+
+        if (!nom || !prenom || !telLocal) {
+            showValidationModal(window.PrioSanteI18n.t('inscription.js.fillFields', 'Veuillez remplir votre Nom, Prénom et Téléphone avant de continuer.'));
+            return;
+        }
+        if (!NAME_PATTERN.test(nom) || !NAME_PATTERN.test(prenom)) {
+            showValidationModal(window.PrioSanteI18n.t('inscription.js.lettersOnly', 'Le Nom et le Prénom ne doivent contenir que des lettres.'));
+            return;
+        }
+    }
+    showStep(step);
+}
+
+function prevStep(step) {
+    showStep(step);
+}
+
+function updateEstimatedScore() {
+    let total = 0;
+    document.querySelectorAll('input[name="symptomes"]:checked').forEach(cb => {
+        total += parseInt(cb.getAttribute('data-points') || 0);
+    });
+
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const urgenceAlert = document.getElementById('urgenceAlert');
+
+    scoreDisplay.innerText = `${total} point${total > 1 ? 's' : ''}`;
+
+    urgenceAlert.style.display = total > 12 ? 'flex' : 'none';
+}
+</script>
+{% endblock %}

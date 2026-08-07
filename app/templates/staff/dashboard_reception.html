@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Réceptionniste — PrioSanté{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h1 style="display: flex; align-items: center; gap: 0.6rem; font-weight: 800;">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="1" ry="1"></rect><line x1="9" y1="12" x2="15" y2="12"></line><line x1="9" y1="16" x2="15" y2="16"></line></svg>
+            <span data-i18n="reception.title">Tableau de Bord Réception</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+            <span data-i18n="reception.subtitle">Gestion des arrivées, suivi de la file du jour & retards (Connecté en tant que</span> <strong>{{ user_name }}</strong>)
+        </p>
+    </div>
+    <div>
+        <span class="badge badge-moyenne" data-i18n="reception.role">Rôle : Réceptionniste</span>
+    </div>
+</div>
+
+<!-- Key Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-box">
+        <div class="stat-val">{{ stats.total }}</div>
+        <div class="stat-lbl" data-i18n="reception.stat.total">Inscrits du Jour</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color: #38bdf8;">{{ stats.en_attente }}</div>
+        <div class="stat-lbl" data-i18n="status.enAttente">En Attente</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color: #34d399;">{{ stats.arrive }}</div>
+        <div class="stat-lbl" data-i18n="reception.stat.arrived">Arrivés en Salle</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color: #a78bfa;">{{ stats.en_consultation }}</div>
+        <div class="stat-lbl" data-i18n="status.enConsultation">En Consultation</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-val" style="color: #f87171;">{{ stats.urgences }}</div>
+        <div class="stat-lbl" data-i18n="reception.stat.emergencies">Redirections Urgence</div>
+    </div>
+</div>
+
+<div class="glass-card">
+    <h3 style="margin-bottom: 1rem;" data-i18n="reception.queueTitle">File d'Attente Directe de Médecine Générale</h3>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th data-i18n="reception.th.codeTime">Code / Heure</th>
+                    <th data-i18n="reception.th.name">Nom & Prénom</th>
+                    <th data-i18n="reception.th.phone">Téléphone</th>
+                    <th data-i18n="reception.th.priority">Priorité</th>
+                    <th data-i18n="reception.th.status">Statut</th>
+                    <th data-i18n="reception.th.actions">Actions Réception</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in consultations %}
+                <tr>
+                    <td>
+                        <strong>{{ c.heure_prevue or 'URGENCE' }}</strong>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ c.code_consultation }}</div>
+                    </td>
+                    <td>
+                        <strong>{{ c.patient.nom.upper() }} {{ c.patient.prenom }}</strong>
+                    </td>
+                    <td>{{ c.patient.telephone }}</td>
+                    <td>
+                        {% if c.priorite == 'Faible' %}
+                            <span class="badge badge-faible" data-i18n="badge.faible">Faible</span>
+                        {% elif c.priorite == 'Moyenne' %}
+                            <span class="badge badge-moyenne" data-i18n="badge.moyenne">Moyenne</span>
+                        {% elif c.priorite == 'Élevée' %}
+                            <span class="badge badge-elevee" data-i18n="badge.elevee">Élevée</span>
+                        {% else %}
+                            <span class="badge badge-urgence" data-i18n="badge.urgence">Urgence</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.statut == 'en_attente' %}
+                            <span class="status-pill status-en_attente" data-i18n="status.enAttente">En attente</span>
+                        {% elif c.statut == 'arrive' %}
+                            <span class="status-pill status-arrive" data-i18n="status.arriveShort">Arrivé</span>
+                        {% elif c.statut == 'en_consultation' %}
+                            <span class="status-pill status-consultation" data-i18n="status.enConsultation">En consultation</span>
+                        {% elif c.statut == 'termine' %}
+                            <span class="status-pill status-termine" data-i18n="status.termineShort">Terminé</span>
+                        {% elif c.statut == 'en_retard' %}
+                            <span class="status-pill status-retard" data-i18n="status.enRetard">En retard</span>
+                        {% else %}
+                            <span class="status-pill status-absent">{{ c.statut }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.statut in ['en_attente', 'en_retard'] %}
+                            <form action="{{ url_for('staff.action_consultation', consultation_id=c.id, action='arrive') }}" method="POST" style="display:inline-block;">
+                                <button type="submit" class="btn btn-success btn-sm"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span data-i18n="status.arriveShort">Arrivé</span></button>
+                            </form>
+
+                            <!-- Retard dialog button -->
+                            <form action="{{ url_for('staff.action_consultation', consultation_id=c.id, action='retard_signale') }}" method="POST" style="display:inline-block; margin-left: 0.25rem;">
+                                <input type="hidden" name="minutes_retard" value="15">
+                                <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm(window.PrioSanteI18n.t('reception.confirmDelay', 'Signaler un retard (+15 min) pour ce patient ?'));"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span data-i18n="reception.delayBtn">Retard &gt;10m</span></button>
+                            </form>
+                        {% elif c.statut == 'arrive' %}
+                            <span style="color: #34d399; font-size: 0.85rem; font-weight: 600;" data-i18n="reception.inWaitingRoom">En salle d'attente</span>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted);" data-i18n="reception.noConsultations">
+                        Aucune consultation enregistrée pour aujourd'hui.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

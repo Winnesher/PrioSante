@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PrioSanté - Gestion Intelligente des Files d'Attente{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            var saved = localStorage.getItem('priosante-theme');
+            if (saved === 'light' || saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', saved);
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <header class="navbar">
+        <a href="{{ url_for('patient.index') }}" class="navbar-brand">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+                    <rect x="9.5" y="3" width="5" height="18" rx="2.5" fill="white"/>
+                    <rect x="3" y="9.5" width="18" height="5" rx="2.5" fill="white"/>
+                </svg>
+            </div>
+            <span>PrioSanté</span>
+        </a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('patient.index') }}" data-i18n="nav.home">Accueil</a></li>
+                <li><a href="{{ url_for('patient.inscription') }}" data-i18n="nav.register">Inscription Patient</a></li>
+                <li><a href="{{ url_for('patient.mon_rdv') }}" data-i18n="nav.appointment">Mon Rendez-vous</a></li>
+                {% if session.get('user_id') %}
+                    <li><a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline"><span data-i18n="nav.dashboard">Dashboard</span> ({{ session.get('username') }})</a></li>
+                    <li><a href="{{ url_for('staff.logout') }}" class="btn btn-danger btn-sm" data-i18n="nav.logout">Déconnexion</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('staff.login') }}" class="btn btn-primary" data-i18n="nav.staffArea">Espace Personnel</a></li>
+                {% endif %}
+                <li>
+                    <button type="button" id="themeToggle" class="theme-toggle" title="Changer le thème" aria-label="Changer le thème clair/sombre"></button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap;">
+            <p style="margin: 0;" data-i18n="footer.copyright">&copy; 2026 PrioSanté — Université de Lomé. Prototype de démonstration hospitalière. Tous droits réservés.</p>
+            <a href="{{ url_for('patient.index') }}#equipe" style="color: var(--text-muted); font-weight: 600; text-decoration: underline;" data-i18n="footer.team">Team</a>
+        </div>
+    </footer>
+
+    <button type="button" id="langToggle" class="lang-toggle lang-toggle-float" title="Switch language / Changer de langue" aria-label="Changer de langue">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <span class="lang-toggle-label">FR</span>
+    </button>
+
+    <script>
+        (function () {
+            var toggle = document.getElementById('themeToggle');
+            if (!toggle) return;
+
+            function currentTheme() {
+                return document.documentElement.getAttribute('data-theme') || 'dark';
+            }
+
+            var sunIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+            var moonIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+
+            function updateIcon() {
+                toggle.innerHTML = currentTheme() === 'light' ? sunIcon : moonIcon;
+            }
+
+            toggle.addEventListener('click', function () {
+                var next = currentTheme() === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('priosante-theme', next);
+                updateIcon();
+            });
+
+            updateIcon();
+        })();
+    </script>
+
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <script>
+        (function () {
+            var btn = document.getElementById('langToggle');
+            if (!btn) return;
+
+            var scrollTimeout;
+            window.addEventListener('scroll', function () {
+                btn.classList.add('is-scrolling');
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function () {
+                    btn.classList.remove('is-scrolling');
+                }, 500);
+            }, { passive: true });
+        })();
+    </script>
+
+    <script>
+        (function () {
+            var glow = document.getElementById('cursorGlow');
+            if (!glow) return;
+
+            document.addEventListener('mousemove', function (e) {
+                glow.style.transform = 'translate3d(' + e.clientX + 'px, ' + e.clientY + 'px, 0) translate(-50%, -50%)';
+                glow.classList.add('active');
+            });
+
+            document.addEventListener('mouseleave', function () {
+                glow.classList.remove('active');
+            });
+        })();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
