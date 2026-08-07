@@ -1,5 +1,7 @@
 # PrioSante
 
+> Projet réalisé dans le cadre de l'UE PHY330 — Université de Lomé.
+
 PrioSante est une application web légère développée en Python avec Flask pour la gestion et la priorisation des rendez‑vous médicaux. Elle fournit :
 - une interface patient pour inscription, demande et consultation de RDV ;
 - un tableau de bord pour le personnel (réception, médecin) pour gérer la file, marquer les arrivées, retards et consultations ;
