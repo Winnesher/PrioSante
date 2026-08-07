@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Rendez-vous — PrioSanté{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 650px; margin: 0 auto;">
+    <h1 style="text-align: center; margin-bottom: 0.5rem; font-weight: 800;" data-i18n="rdv.title">Suivi de votre Rendez-vous</h1>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;" data-i18n="rdv.subtitle">
+        Entrez votre numéro de téléphone ou votre code de réservation (ex: PS-A9F32).
+    </p>
+
+    <form action="{{ url_for('patient.mon_rdv') }}" method="POST" style="margin-bottom: 2rem;">
+        <div style="display: flex; gap: 0.75rem;">
+            <input type="text" name="query" class="form-control" placeholder="Code RDV (ex: PS-12345) ou N° Téléphone..." data-i18n-placeholder="rdv.searchPh" required>
+            <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span data-i18n="rdv.searchBtn">Rechercher</span>
+            </button>
+        </div>
+    </form>
+
+    {% if recherche_effectuee %}
+        {% if consultation %}
+            <div style="background: var(--surface-card-soft); border: 1px solid var(--primary); padding: 1.5rem; border-radius: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                    <div>
+                        <strong style="font-size: 1.2rem; color: var(--primary-light);">{{ consultation.patient.prenom }} {{ consultation.patient.nom }}</strong>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);"><span data-i18n="rdv.codeLabel">Code</span> : {{ consultation.code_consultation }}</div>
+                    </div>
+                    <div>
+                        {% if consultation.statut == 'en_attente' %}
+                            <span class="status-pill status-en_attente"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg> <span data-i18n="status.enAttente">En attente</span></span>
+                        {% elif consultation.statut == 'arrive' %}
+                            <span class="status-pill status-arrive"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg> <span data-i18n="status.arrive">Arrivé à l'hôpital</span></span>
+                        {% elif consultation.statut == 'en_consultation' %}
+                            <span class="status-pill status-consultation"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2 6 4-14 2 8h6"></path></svg> <span data-i18n="status.enConsultation">En consultation</span></span>
+                        {% elif consultation.statut == 'termine' %}
+                            <span class="status-pill status-termine"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> <span data-i18n="status.termine">Consultation terminée</span></span>
+                        {% elif consultation.statut == 'en_retard' %}
+                            <span class="status-pill status-retard"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span data-i18n="status.enRetard">En retard</span></span>
+                        {% else %}
+                            <span class="status-pill status-absent">{{ consultation.statut }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;" data-i18n="rdv.expectedTime">Heure prévisionnelle :</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.8rem; font-weight: 800; color: var(--text-main);">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+                            {{ consultation.heure_prevue or 'N/A' }}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;" data-i18n="rdv.priorityLevel">Niveau de Priorité :</span>
+                        <div style="margin-top: 0.25rem;">
+                            {% if consultation.priorite == 'Faible' %}
+                                <span class="badge badge-faible" data-i18n="badge.faible">Faible</span>
+                            {% elif consultation.priorite == 'Moyenne' %}
+                                <span class="badge badge-moyenne" data-i18n="badge.moyenne">Moyenne</span>
+                            {% elif consultation.priorite == 'Élevée' %}
+                                <span class="badge badge-elevee" data-i18n="badge.elevee">Élevée</span>
+                            {% else %}
+                                <span class="badge badge-urgence" data-i18n="badge.urgence">Urgence</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.9rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                    <span data-i18n="rdv.service">Service</span> : <strong>{{ consultation.service.nom }}</strong> | <span data-i18n="rdv.date">Date</span> : {{ consultation.date_consultation.strftime('%d/%m/%Y') }}
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-warning" style="text-align: center;" data-i18n="rdv.notFound">
+                Aucune réservation trouvée pour cette recherche. Vérifiez votre saisie ou réinscrivez-vous.
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmation du Rendez-vous — PrioSanté{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 700px; margin: 0 auto; text-align: center;">
+    <h1 style="font-weight: 800; margin-bottom: 0.5rem;" data-i18n="confirmation.title">Votre Rendez-vous est Confirmé</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+        <span data-i18n="confirmation.thanksPrefix">Merci M. / Mme</span> <strong>{{ consultation.patient.prenom }} {{ consultation.patient.nom }}</strong>. <span data-i18n="confirmation.thanksSuffix">Votre demande a été traitée avec succès par le moteur d'attribution PrioSanté.</span>
+    </p>
+
+    <!-- Pass de consultation (façon billet) -->
+    <div id="passContent" class="pass-ticket">
+        <div class="pass-header">
+            <div class="pass-logo">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div class="pass-header-text">
+                <div class="pass-eyebrow" data-i18n="confirmation.pass.eyebrow">PrioSanté — Pass de Consultation</div>
+                <div class="pass-title" data-i18n="confirmation.pass.title">Rendez-vous Confirmé</div>
+            </div>
+        </div>
+
+        <div class="pass-body">
+            <div class="pass-patient-name">{{ consultation.patient.prenom }} {{ consultation.patient.nom }}</div>
+
+            <div class="pass-info-grid">
+                <div class="pass-info-item">
+                    <div class="pass-info-label">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+                        <span data-i18n="confirmation.pass.time">Heure</span>
+                    </div>
+                    <div class="pass-info-value">{{ consultation.heure_prevue }}</div>
+                </div>
+                <div class="pass-info-item">
+                    <div class="pass-info-label">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
+                        <span data-i18n="confirmation.pass.service">Service</span>
+                    </div>
+                    <div class="pass-info-value">{{ consultation.service.nom }}</div>
+                </div>
+                <div class="pass-info-item">
+                    <div class="pass-info-label">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span data-i18n="confirmation.pass.date">Date</span>
+                    </div>
+                    <div class="pass-info-value">{{ consultation.date_consultation.strftime('%d/%m/%Y') }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pass-perforation"></div>
+
+        <div class="pass-code-stub">
+            <div class="pass-code-label" data-i18n="confirmation.pass.codeLabel">Code à présenter à l'accueil</div>
+            <div class="pass-code-value">{{ consultation.code_consultation }}</div>
+        </div>
+    </div>
+
+    <div style="margin: 1.5rem 0 2rem 0;">
+        <button type="button" class="btn btn-outline btn-pill btn-nudge" onclick="telechargerPass()" id="downloadPassBtn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span data-i18n="confirmation.downloadBtn">Télécharger mon pass de consultation</span>
+        </button>
+    </div>
+
+    <!-- Simulated SMS Container -->
+    <div style="background: var(--surface-terminal); border: 1px dashed #38bdf8; padding: 1.25rem; border-radius: 12px; text-align: left; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: #38bdf8; font-weight: 700; margin-bottom: 0.5rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span data-i18n="confirmation.smsHeader">Simulation SMS / USSD envoyé au</span> {{ consultation.patient.telephone }}
+        </div>
+        <div style="font-family: monospace; font-size: 0.9rem; background: var(--surface-terminal-inner); padding: 0.75rem; border-radius: 8px; color: #f1f5f9;">
+            "PrioSanté : Votre RDV en {{ consultation.service.nom }} est confirmé pour le {{ consultation.date_consultation.strftime('%d/%m/%Y') }} à {{ consultation.heure_prevue }}. Code RDV : {{ consultation.code_consultation }}."
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+        <a href="{{ url_for('patient.inscription') }}" class="btn btn-outline" data-i18n="confirmation.btnAnother">Prendre un autre RDV</a>
+        <a href="{{ url_for('patient.mon_rdv') }}" class="btn btn-primary" data-i18n="confirmation.btnTrack">Suivre l'état de ma réservation ➔</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+function telechargerPass() {
+    const btn = document.getElementById('downloadPassBtn');
+    btn.disabled = true;
+    btn.classList.remove('btn-nudge');
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const pageWidth = 100;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pageWidth, 150] });
+
+        const primary = [13, 148, 136];
+        const dark = [15, 23, 42];
+        const muted = [100, 116, 139];
+
+        // En-tête
+        pdf.setFillColor(...primary);
+        pdf.rect(0, 0, pageWidth, 26, 'F');
+
+        // Logo (badge blanc + croix teal)
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(8, 6, 7, 7, 1.5, 1.5, 'F');
+        pdf.setFillColor(...primary);
+        pdf.rect(8 + 3, 6 + 1.3, 1, 4.4, 'F');
+        pdf.rect(8 + 1.3, 6 + 3, 4.4, 1, 'F');
+
+        // Nom "PrioSanté" à côté du logo
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(13);
+        pdf.text('PrioSanté', 8 + 7 + 3, 6 + 5.3);
+
+        // Sous-titre
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(220, 245, 240);
+        pdf.text(window.PrioSanteI18n.t('confirmation.pdf.subtitle', 'Rendez-vous Confirmé — Pass de Consultation'), 8, 21);
+
+        // Nom du patient
+        let y = 38;
+        pdf.setTextColor(...dark);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(14);
+        pdf.text('{{ consultation.patient.prenom }} {{ consultation.patient.nom }}', 8, y);
+
+        // Labels
+        y += 12;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(...muted);
+        pdf.text(window.PrioSanteI18n.t('confirmation.pdf.time', 'HEURE'), 8, y);
+        pdf.text(window.PrioSanteI18n.t('confirmation.pdf.service', 'SERVICE'), 40, y);
+        pdf.text(window.PrioSanteI18n.t('confirmation.pdf.date', 'DATE'), 72, y);
+
+        // Valeurs
+        y += 6.5;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10.5);
+        pdf.setTextColor(...dark);
+        pdf.text('{{ consultation.heure_prevue }}', 8, y);
+        pdf.text('{{ consultation.service.nom }}', 40, y, { maxWidth: 28 });
+        pdf.text('{{ consultation.date_consultation.strftime("%d/%m/%Y") }}', 72, y);
+
+        // Séparation en pointillés (effet billet)
+        y += 14;
+        pdf.setDrawColor(200, 200, 200);
+        pdf.setLineDashPattern([1, 1], 0);
+        pdf.line(8, y, pageWidth - 8, y);
+        pdf.setLineDashPattern([], 0);
+
+        // Code de consultation
+        y += 14;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(...muted);
+        pdf.text(window.PrioSanteI18n.t('confirmation.pdf.codeLabel', "CODE À PRÉSENTER À L'ACCUEIL"), pageWidth / 2, y, { align: 'center' });
+
+        y += 11;
+        pdf.setFont('courier', 'bold');
+        pdf.setFontSize(19);
+        pdf.setTextColor(...primary);
+        pdf.text('{{ consultation.code_consultation }}', pageWidth / 2, y, { align: 'center' });
+
+        pdf.save('PrioSante-{{ consultation.code_consultation }}.pdf');
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}
