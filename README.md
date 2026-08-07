@@ -133,9 +133,3 @@ Si nécessaire, activez un environnement propre et installez les dépendances av
 
 Ce projet est sous licence MIT — voir le fichier `LICENSE`.
 
----
-
-Si tu veux, je peux :
-- ajouter des badges CI/tests au README,
-- créer un fichier `.env.example`,
-- ou créer le dépôt distant GitHub et pousser (si tu confirmes le nom et la visibilité).
