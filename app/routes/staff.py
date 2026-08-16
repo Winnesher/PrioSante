@@ -2,7 +2,7 @@ from datetime import date
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.database import db
 from app.models import Personnel, Consultation, LogRetard, Notification
-from app.planning import gerer_retard_patient, attribuer_creneau
+from app.planning import gerer_retard_patient, attribuer_creneau, creneau_est_depasse
 from app.notifications import envoyer_notification_simulee
 from app import limiter
 
@@ -63,7 +63,10 @@ def dashboard():
         consultations,
         key=lambda c: (priority_order.get(c.priorite, 4), c.heure_prevue or '99:99')
     )
-    
+
+    for c in consultations:
+        c.creneau_depasse = creneau_est_depasse(c)
+
     role = session.get('role')
     # Récupère le nom via la relation Medecin (Personnel n'a pas de champ nom propre)
     user_obj = db.session.get(Personnel, session.get('user_id'))

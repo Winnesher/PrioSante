@@ -41,7 +41,7 @@ def inscription():
 
         selected_symptoms = request.form.getlist('symptomes')
 
-        if not nom or not prenom or not telephone or not service_id:
+        if not nom or not prenom or not telephone or not service_id or not date_naissance:
             flash("Veuillez remplir tous les champs obligatoires du formulaire.", "danger")
             return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
                                     date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance,
@@ -75,8 +75,11 @@ def inscription():
         if genre not in GENRES_AUTORISES:
             genre = 'Autre'
 
-        # Créer ou retrouver le patient
-        patient = Patient.query.filter_by(telephone=telephone).first()
+        # Créer ou retrouver le patient : un même numéro peut être partagé par
+        # plusieurs personnes (téléphone familial), donc on ne considère qu'il
+        # s'agit du même patient que si le nom ET le prénom correspondent aussi
+        # — sinon on créerait un dossier fusionné entre deux personnes distinctes.
+        patient = Patient.query.filter_by(telephone=telephone, nom=nom, prenom=prenom).first()
         if not patient:
             patient = Patient(
                 nom=nom,
@@ -88,10 +91,8 @@ def inscription():
             db.session.add(patient)
             db.session.commit()
         else:
-            patient.nom = nom
-            patient.prenom = prenom
-            if date_naissance:
-                patient.date_naissance = date_naissance
+            patient.date_naissance = date_naissance
+            patient.genre = genre
             db.session.commit()
 
         # Évaluation clinique du score

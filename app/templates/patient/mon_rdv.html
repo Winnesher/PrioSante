@@ -39,6 +39,8 @@
                             <span class="status-pill status-termine"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> <span data-i18n="status.termine">Consultation terminée</span></span>
                         {% elif consultation.statut == 'en_retard' %}
                             <span class="status-pill status-retard"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span data-i18n="status.enRetard">En retard</span></span>
+                        {% elif consultation.statut == 'absent' %}
+                            <span class="status-pill status-absent"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> <span data-i18n="status.absent">Absent</span></span>
                         {% else %}
                             <span class="status-pill status-absent">{{ consultation.statut }}</span>
                         {% endif %}
@@ -73,6 +75,16 @@
                     <span data-i18n="rdv.service">Service</span> : <strong>{{ consultation.service.nom }}</strong> | <span data-i18n="rdv.date">Date</span> : {{ consultation.date_consultation.strftime('%d/%m/%Y') }}
                 </div>
             </div>
+
+            {% if consultation.statut == 'absent' %}
+            <div class="alert alert-warning" style="margin-top: 1.25rem;">
+                <strong data-i18n="rdv.missedTitle">Vous avez raté ce rendez-vous</strong>
+                <p style="margin: 0.4rem 0 0.9rem;" data-i18n="rdv.missedDesc">
+                    La réception vous a marqué comme absent et votre créneau a été libéré. Merci de refaire une demande de consultation pour obtenir un nouveau créneau.
+                </p>
+                <a href="{{ url_for('patient.inscription') }}" class="btn btn-primary btn-sm" data-i18n="rdv.missedCta">Faire une nouvelle demande</a>
+            </div>
+            {% endif %}
         {% else %}
             <div class="alert alert-warning" style="text-align: center;" data-i18n="rdv.notFound">
                 Aucune réservation trouvée pour cette recherche. Vérifiez votre saisie ou réinscrivez-vous.

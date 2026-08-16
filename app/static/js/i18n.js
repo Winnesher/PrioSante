@@ -156,6 +156,9 @@
             'rdv.service': 'Service',
             'rdv.date': 'Date',
             'rdv.notFound': 'No booking found for this search. Check your input or register again.',
+            'rdv.missedTitle': 'You missed this appointment',
+            'rdv.missedDesc': 'Reception marked you as absent and your slot has been freed up. Please submit a new consultation request to get a new time slot.',
+            'rdv.missedCta': 'Make a new request',
 
             // status pills (shared)
             'status.enAttente': 'Waiting',
@@ -163,6 +166,7 @@
             'status.enConsultation': 'In Consultation',
             'status.termine': 'Consultation Completed',
             'status.enRetard': 'Delayed',
+            'status.absent': 'Absent',
             'status.serviceOuvert': 'Service open',
             'status.serviceFerme': 'Service closed — next available slot: tomorrow 8:00 AM',
 
@@ -200,6 +204,9 @@
             'reception.th.actions': 'Reception Actions',
             'reception.confirmDelay': 'Report a delay (+15 min) for this patient?',
             'reception.delayBtn': 'Delayed >10m',
+            'reception.confirmAbsent': 'Mark this patient as absent? Their slot will be freed up.',
+            'reception.absentBtn': 'Absent',
+            'reception.overdue': 'Slot overdue',
             'reception.inWaitingRoom': 'In waiting room',
             'reception.noConsultations': 'No consultations recorded for today.',
 

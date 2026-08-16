@@ -76,21 +76,25 @@ def seed_database():
         demo_patients = [
             {
                 "nom": "KOUADIO", "prenom": "Ama", "tel": "+228 90 11 22 33",
+                "naissance": "1995-03-14",
                 "symptomes": ["toux_rhume", "fievre_legere"], # Score 2 (Faible)
                 "statut": "en_attente"
             },
             {
                 "nom": "MENSAH", "prenom": "Yao", "tel": "+228 91 22 33 44",
+                "naissance": "1988-07-22",
                 "symptomes": ["fievre_elevee", "douleur_moderee"], # Score 6 (Moyenne)
                 "statut": "arrive"
             },
             {
                 "nom": "LAWSON", "prenom": "Kodjo", "tel": "+228 92 33 44 55",
+                "naissance": "2001-11-05",
                 "symptomes": ["difficulte_respirer", "douleur_moderee"], # Score 10 (Élevée)
                 "statut": "en_attente"
             },
             {
                 "nom": "ADZOH", "prenom": "Afiwa", "tel": "+228 93 44 55 66",
+                "naissance": "1972-01-30",
                 "symptomes": ["confusion", "fievre_elevee"], # Score 14 (Urgence)
                 "statut": "redirection_urgence"
             }
@@ -103,6 +107,7 @@ def seed_database():
                 nom=pdata["nom"],
                 prenom=pdata["prenom"],
                 telephone=pdata["tel"],
+                date_naissance=pdata["naissance"],
                 genre="M" if idx % 2 != 0 else "F"
             )
             db.session.add(patient)
