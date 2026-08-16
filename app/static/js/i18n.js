@@ -69,7 +69,7 @@
             'landing.team.title': 'Our Team',
             'landing.team.role1': 'Physics Student — Physics Teacher',
             'landing.team.role2': 'Physics Student — CanalBox Installation Technician',
-            'landing.team.role3': 'Physics Student — Junior Developer & DevOps',
+            'landing.team.role3': 'Physics Student — Specializing in DevOps, AI, MLOps',
 
             // landing.html — contact
             'landing.contact.title': 'Contact Us',
