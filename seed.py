@@ -110,7 +110,8 @@ def seed_database():
 
             eval_res = evaluer_score_et_priorite(pdata["symptomes"])
             code_unique = f"PS-DEMO0{idx}"
-            heure = attribuer_creneau(service_mg.id, today, eval_res["priorite"])
+            resultat_creneau = attribuer_creneau(service_mg.id, today, eval_res["priorite"])
+            heure = resultat_creneau[1] if resultat_creneau else None
 
             consultation = Consultation(
                 code_consultation=code_unique,

@@ -17,44 +17,61 @@ def generer_tous_les_creneaux():
         current += timedelta(minutes=DUREE_CRENEAU_MINUTES)
     return creneaux
 
+def service_est_ouvert(instant=None):
+    """Le service accueille du public entre HEURE_DEBUT_CONSULTATION et
+    HEURE_FIN_CONSULTATION. En dehors de cette plage, l'inscription en ligne
+    reste possible mais programme le patient au jour ouvré suivant."""
+    instant = instant or datetime.now()
+    debut = datetime.strptime(HEURE_DEBUT_CONSULTATION, "%H:%M").time()
+    fin = datetime.strptime(HEURE_FIN_CONSULTATION, "%H:%M").time()
+    return debut <= instant.time() < fin
+
+
 def attribuer_creneau(service_id, date_cible, priorite):
     """
-    Détermine le premier créneau libre pour la date et la priorité données.
-    Si priorite == 'Urgence', renvoie None.
-    Si priorite == 'Élevée', tente d'insérer dans les créneaux les plus proches.
+    Détermine (date, heure) du premier créneau libre à partir de date_cible.
+    - Si date_cible est aujourd'hui, ignore les créneaux déjà passés.
+    - Si plus aucun créneau n'est disponible ce jour-là (journée pleine ou
+      déjà terminée), reporte automatiquement au jour suivant à l'ouverture.
+    - Si priorite == 'Urgence', renvoie None (aucun créneau, redirection immédiate).
     """
     if priorite == 'Urgence':
         return None
 
     creneaux_possibles = generer_tous_les_creneaux()
-    
+
+    if date_cible == date.today():
+        maintenant = datetime.now().time()
+        creneaux_possibles = [
+            c for c in creneaux_possibles
+            if datetime.strptime(c, "%H:%M").time() > maintenant
+        ]
+
+    if not creneaux_possibles:
+        return attribuer_creneau(service_id, date_cible + timedelta(days=1), priorite)
+
     # Récupérer les consultations déjà réservées non annulées/non libérées
     consultations_existantes = Consultation.query.filter(
         Consultation.service_id == service_id,
         Consultation.date_consultation == date_cible,
         Consultation.statut.in_(['en_attente', 'arrive', 'en_consultation', 'en_retard'])
     ).all()
-    
+
     creneaux_occupes = {c.heure_prevue for c in consultations_existantes if c.heure_prevue}
 
     if priorite in ['Élevée', 'Moyenne']:
         # Trouver le tout premier créneau non occupé
         for c in creneaux_possibles:
             if c not in creneaux_occupes:
-                return c
+                return (date_cible, c)
     else:
         # Priorité Faible : attribuer le premier créneau disponible à partir du début
         for c in creneaux_possibles:
             if c not in creneaux_occupes:
-                return c
+                return (date_cible, c)
 
-    # Si tous les créneaux sont occupés, étendre au-delà de 17:00
-    if creneaux_possibles:
-        dernier_creneau = datetime.strptime(creneaux_possibles[-1], "%H:%M")
-        nouveau_creneau = (dernier_creneau + timedelta(minutes=DUREE_CRENEAU_MINUTES)).strftime("%H:%M")
-        return nouveau_creneau
-        
-    return "17:00"
+    # Journée pleine : reporter au jour suivant plutôt que déborder après 17:00
+    return attribuer_creneau(service_id, date_cible + timedelta(days=1), priorite)
 
 def gerer_retard_patient(consultation, minutes_retard):
     """

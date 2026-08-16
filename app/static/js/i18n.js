@@ -163,6 +163,8 @@
             'status.enConsultation': 'In Consultation',
             'status.termine': 'Consultation Completed',
             'status.enRetard': 'Delayed',
+            'status.serviceOuvert': 'Service open',
+            'status.serviceFerme': 'Service closed — next available slot: tomorrow 8:00 AM',
 
             // priority badges (shared)
             'badge.faible': 'Low',

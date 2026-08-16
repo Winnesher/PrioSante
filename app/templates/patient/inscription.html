@@ -5,9 +5,17 @@
 {% block content %}
 <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
     <h1 style="text-align: center; margin-bottom: 0.5rem; font-weight: 800;" data-i18n="inscription.title">Prenez Rendez-vous en Ligne</h1>
-    <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem;" data-i18n="inscription.subtitle">
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 1rem;" data-i18n="inscription.subtitle">
         Remplissez le formulaire ci-dessous pour obtenir automatiquement une heure de passage optimisée selon votre état.
     </p>
+
+    <div style="text-align: center; margin-bottom: 2rem;">
+        {% if service_ouvert %}
+        <span class="status-pill status-ouvert" data-i18n="status.serviceOuvert">Service ouvert</span>
+        {% else %}
+        <span class="status-pill status-ferme" data-i18n="status.serviceFerme">Service fermé — prochain créneau : demain 08h00</span>
+        {% endif %}
+    </div>
 
     <!-- Wizard Steps Indicator -->
     <div class="wizard-steps">
