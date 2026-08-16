@@ -17,8 +17,15 @@
         <!-- Bloc texte ancré sur la gauche pour dégager les soignants et patients réels -->
         <div style="max-width: 650px;">
             
-            <div class="hero-fade hero-fade-1" data-i18n="landing.hero.badge" style="display: inline-flex; align-items: center; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.3px; margin-bottom: 1.25rem; backdrop-filter: blur(8px);">
-                Prototype académique — Université de Lomé
+            <div class="hero-fade hero-fade-1" style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+                <div data-i18n="landing.hero.badge" style="display: inline-flex; align-items: center; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.3px; backdrop-filter: blur(8px);">
+                    Prototype académique — Université de Lomé
+                </div>
+                {% if service_ouvert %}
+                <span class="status-pill status-ouvert" data-i18n="status.serviceOuvert">Service ouvert</span>
+                {% else %}
+                <span class="status-pill status-ferme" data-i18n="status.serviceFerme">Service fermé — prochain créneau : demain 08h00</span>
+                {% endif %}
             </div>
 
             <h1 class="hero-fade hero-fade-2" data-i18n="landing.hero.title" style="font-size: 3.2rem; font-weight: 900; line-height: 1.15; margin-bottom: 1.25rem; color: #ffffff; text-shadow: 0 4px 14px rgba(0,0,0,0.9);">

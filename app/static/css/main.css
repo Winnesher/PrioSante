@@ -506,6 +506,8 @@ body {
 .status-termine { background: #059669; color: white; }
 .status-en_retard { background: #d97706; color: white; }
 .status-absent { background: #64748b; color: #e2e8f0; }
+.status-ouvert { background: #059669; color: white; }
+.status-ferme { background: #64748b; color: #e2e8f0; }
 
 /* Forms */
 .form-group {
