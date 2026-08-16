@@ -9,7 +9,7 @@ class Patient(db.Model):
     nom = db.Column(db.String(80), nullable=False)
     prenom = db.Column(db.String(80), nullable=False)
     telephone = db.Column(db.String(20), nullable=False)
-    date_naissance = db.Column(db.String(20), nullable=True)
+    date_naissance = db.Column(db.String(20), nullable=False)
     genre = db.Column(db.String(10), nullable=True)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
 

@@ -29,7 +29,13 @@ def service_est_ouvert(instant=None):
 
 def attribuer_creneau(service_id, date_cible, priorite):
     """
-    Détermine (date, heure) du premier créneau libre à partir de date_cible.
+    Détermine (date, heure) du premier créneau libre à partir de date_cible,
+    par ordre chronologique — l'attribution de créneau ne dépend pas de la
+    priorité clinique (hors Urgence). La priorisation réelle se fait au
+    niveau du tableau de bord du personnel (staff.dashboard()), qui trie la
+    file d'attente par priorité avant l'heure : un patient plus prioritaire
+    est vu en premier dans la salle, même si son créneau officiel est plus
+    tardif que celui d'un patient moins prioritaire.
     - Si date_cible est aujourd'hui, ignore les créneaux déjà passés.
     - Si plus aucun créneau n'est disponible ce jour-là (journée pleine ou
       déjà terminée), reporte automatiquement au jour suivant à l'ouverture.
@@ -59,57 +65,91 @@ def attribuer_creneau(service_id, date_cible, priorite):
 
     creneaux_occupes = {c.heure_prevue for c in consultations_existantes if c.heure_prevue}
 
-    if priorite in ['Élevée', 'Moyenne']:
-        # Trouver le tout premier créneau non occupé
-        for c in creneaux_possibles:
-            if c not in creneaux_occupes:
-                return (date_cible, c)
-    else:
-        # Priorité Faible : attribuer le premier créneau disponible à partir du début
-        for c in creneaux_possibles:
-            if c not in creneaux_occupes:
-                return (date_cible, c)
+    for c in creneaux_possibles:
+        if c not in creneaux_occupes:
+            return (date_cible, c)
 
     # Journée pleine : reporter au jour suivant plutôt que déborder après 17:00
     return attribuer_creneau(service_id, date_cible + timedelta(days=1), priorite)
 
-def gerer_retard_patient(consultation, minutes_retard):
+def creneau_est_depasse(consultation, minutes_grace=DUREE_CRENEAU_MINUTES, instant=None):
+    """
+    Un créneau est considéré dépassé quand son heure prévue (+ une marge de
+    grâce d'une durée de créneau) est déjà passée alors que le patient n'a
+    toujours pas été pris en charge. Sert uniquement de repère visuel pour
+    le personnel — aucune bascule automatique de statut n'en découle.
+    """
+    instant = instant or datetime.now()
+    if not consultation.heure_prevue or consultation.date_consultation != instant.date():
+        return False
+    if consultation.statut not in ('en_attente', 'en_retard'):
+        return False
+    heure_limite = (
+        datetime.strptime(consultation.heure_prevue, "%H:%M") + timedelta(minutes=minutes_grace)
+    ).time()
+    return instant.time() > heure_limite
+
+
+def gerer_retard_patient(consultation, minutes_retard, instant=None):
     """
     Applique la règle métier pour les retards :
     - Retard <= 10 minutes : Maintien de la consultation (léger décalage)
-    - Retard > 10 minutes : Replacement en fin de file du jour
+    - Retard > 10 minutes : Replacement en fin de file du jour, sans jamais
+      proposer un créneau déjà passé. Si la journée est pleine ou déjà
+      terminée, reporte au lendemain à l'ouverture (même logique que
+      attribuer_creneau).
     """
+    instant = instant or datetime.now()
+
     if minutes_retard <= 10:
         action = f"Consultation maintenue malgré un retard de {minutes_retard} minutes."
         consultation.statut = 'en_retard'
     else:
-        # Replacement en fin de file
+        date_originale = consultation.date_consultation
         creneaux_possibles = generer_tous_les_creneaux()
-        consultations_jour = Consultation.query.filter(
-            Consultation.service_id == consultation.service_id,
-            Consultation.date_consultation == consultation.date_consultation,
-            Consultation.statut.in_(['en_attente', 'arrive', 'en_consultation', 'en_retard'])
-        ).all()
-        
-        heures_occupees = [c.heure_prevue for c in consultations_jour if c.heure_prevue]
-        
-        # Trouver la dernière heure
+
+        if date_originale == instant.date():
+            heure_actuelle = instant.time()
+            creneaux_possibles = [
+                c for c in creneaux_possibles
+                if datetime.strptime(c, "%H:%M").time() > heure_actuelle
+            ]
+
         nouvelle_heure = None
-        for c in reversed(creneaux_possibles):
-            if c not in heures_occupees:
-                nouvelle_heure = c
-                break
-        
-        if not nouvelle_heure and heures_occupees:
-            derniere = max(heures_occupees)
-            dt_dern = datetime.strptime(derniere, "%H:%M")
-            nouvelle_heure = (dt_dern + timedelta(minutes=15)).strftime("%H:%M")
-        elif not nouvelle_heure:
-            nouvelle_heure = "16:45"
-            
-        consultation.heure_prevue = nouvelle_heure
-        consultation.statut = 'en_retard'
-        action = f"Retard de {minutes_retard} min (>10 min) : Replacé en fin de file à {nouvelle_heure}."
+        if creneaux_possibles:
+            consultations_jour = Consultation.query.filter(
+                Consultation.service_id == consultation.service_id,
+                Consultation.date_consultation == date_originale,
+                Consultation.statut.in_(['en_attente', 'arrive', 'en_consultation', 'en_retard'])
+            ).all()
+
+            heures_occupees = [c.heure_prevue for c in consultations_jour if c.heure_prevue]
+
+            # Trouver la dernière heure encore libre
+            for c in reversed(creneaux_possibles):
+                if c not in heures_occupees:
+                    nouvelle_heure = c
+                    break
+
+            if not nouvelle_heure and heures_occupees:
+                derniere = max(heures_occupees)
+                dt_dern = datetime.strptime(derniere, "%H:%M")
+                candidat = (dt_dern + timedelta(minutes=DUREE_CRENEAU_MINUTES)).strftime("%H:%M")
+                # Ne proposer ce dépassement que s'il reste dans les horaires de service
+                if candidat <= HEURE_FIN_CONSULTATION:
+                    nouvelle_heure = candidat
+
+        if nouvelle_heure:
+            consultation.heure_prevue = nouvelle_heure
+            consultation.statut = 'en_retard'
+            action = f"Retard de {minutes_retard} min (>10 min) : Replacé en fin de file à {nouvelle_heure}."
+        else:
+            # Journée pleine ou déjà terminée : reporter au lendemain à l'ouverture
+            consultation.date_consultation = date_originale + timedelta(days=1)
+            consultation.heure_prevue = HEURE_DEBUT_CONSULTATION
+            consultation.statut = 'en_retard'
+            action = (f"Retard de {minutes_retard} min (>10 min) : journée pleine ou terminée, "
+                      f"reporté au {consultation.date_consultation.strftime('%d/%m/%Y')} à {HEURE_DEBUT_CONSULTATION}.")
 
     log = LogRetard(
         consultation_id=consultation.id,
