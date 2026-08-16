@@ -14,7 +14,7 @@
             'footer.team': 'Team',
 
             // landing.html — hero
-            'landing.hero.badge': 'Academic Prototype — University of Lomé',
+            'landing.hero.badge': 'Academic Prototype, University of Lomé',
             'landing.hero.title': "No more waiting blindly at the hospital.",
             'landing.hero.desc': '<strong>PrioSanté</strong> reinvents hospital reception: remote registration, automatic clinical priority scoring from symptoms, and smart 15-minute slot allocation.',
             'landing.hero.stat1': 'Optimized slots',
@@ -67,9 +67,9 @@
 
             // landing.html — team
             'landing.team.title': 'Our Team',
-            'landing.team.role1': 'Physics Student — Physics Teacher',
-            'landing.team.role2': 'Physics Student — CanalBox Installation Technician',
-            'landing.team.role3': 'Physics Student — Specializing in DevOps, AI, MLOps',
+            'landing.team.role1': 'Physics Student, Physics Teacher',
+            'landing.team.role2': 'Physics Student, CanalBox Installation Technician',
+            'landing.team.role3': 'Physics Student, specializing in DevOps, AI, MLOps',
 
             // landing.html — contact
             'landing.contact.title': 'Contact Us',
@@ -109,7 +109,7 @@
             'inscription.step3.submit': 'Confirm & Get Appointment Time',
             'inscription.modal.ok': 'Got it',
             'inscription.js.needSymptom': 'Please check at least one symptom before submitting your request.',
-            'inscription.js.fillFields': 'Please fill in your Last Name, First Name and Phone Number before continuing.',
+            'inscription.js.fillFields': 'Please fill in your Last Name, First Name, Phone Number and Date of Birth before continuing.',
             'inscription.js.lettersOnly': 'Last Name and First Name must only contain letters.',
 
             // confirmation.html
