@@ -2,8 +2,10 @@ import re
 import secrets
 from datetime import date, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from sqlalchemy.exc import IntegrityError
 
 NAME_PATTERN = re.compile(r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$")
+MAX_TENTATIVES_CRENEAU = 3
 
 
 def bornes_date_naissance():
@@ -101,35 +103,48 @@ def inscription():
         priorite = eval_result['priorite']
         symptomes_details_str = ", ".join(eval_result['symptomes_details']) if eval_result['symptomes_details'] else "Aucun symptôme spécifique déclaré"
         
-        # Attribution du créneau (et de la date, reportée au lendemain si la
-        # journée est pleine ou déjà terminée)
-        date_aujourdhui = date.today()
-        resultat_creneau = attribuer_creneau(service_id, date_aujourdhui, priorite)
-        if resultat_creneau is None:
-            date_consultation, heure_prevue = date_aujourdhui, None
-        else:
-            date_consultation, heure_prevue = resultat_creneau
-
         # Code de consultation unique (ex: PS-A9F32)
         code_unique = f"PS-{secrets.token_hex(3).upper()}"
-
         statut_initial = 'redirection_urgence' if priorite == 'Urgence' else 'en_attente'
+        date_aujourdhui = date.today()
 
-        consultation = Consultation(
-            code_consultation=code_unique,
-            patient_id=patient.id,
-            service_id=service_id,
-            score=score,
-            priorite=priorite,
-            symptomes_declares=symptomes_details_str,
-            date_consultation=date_consultation,
-            heure_prevue=heure_prevue,
-            statut=statut_initial
-        )
-        
-        db.session.add(consultation)
-        db.session.commit()
-        
+        # Attribution du créneau (et de la date, reportée au lendemain si la
+        # journée est pleine ou déjà terminée), avec nouvelle tentative en cas
+        # de collision : si deux patients obtiennent le même créneau au même
+        # instant, la contrainte d'unicité en base rejette le second, qui se
+        # voit alors attribuer le créneau libre suivant, de façon transparente.
+        consultation = None
+        for _tentative in range(MAX_TENTATIVES_CRENEAU):
+            resultat_creneau = attribuer_creneau(service_id, date_aujourdhui, priorite)
+            if resultat_creneau is None:
+                date_consultation, heure_prevue = date_aujourdhui, None
+            else:
+                date_consultation, heure_prevue = resultat_creneau
+
+            consultation = Consultation(
+                code_consultation=code_unique,
+                patient_id=patient.id,
+                service_id=service_id,
+                score=score,
+                priorite=priorite,
+                symptomes_declares=symptomes_details_str,
+                date_consultation=date_consultation,
+                heure_prevue=heure_prevue,
+                statut=statut_initial
+            )
+            db.session.add(consultation)
+            try:
+                db.session.commit()
+                break
+            except IntegrityError:
+                db.session.rollback()
+                consultation = None
+        else:
+            flash("Le service est actuellement très sollicité, veuillez réessayer dans un instant.", "danger")
+            return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
+                                    date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance,
+                                    service_ouvert=service_est_ouvert())
+
         # Envoi de la notification SMS simulée
         envoyer_notification_simulee(consultation, type_msg='CONFIRMATION')
         

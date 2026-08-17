@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard Réceptionniste — PrioSanté{% endblock %}
+{% block title %}Dashboard Réceptionniste : PrioSanté{% endblock %}
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -113,13 +113,13 @@
                             <form action="{{ url_for('staff.action_consultation', consultation_id=c.id, action='retard_signale') }}" method="POST" style="display:inline-block; margin-left: 0.25rem;">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="minutes_retard" value="15">
-                                <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm(window.PrioSanteI18n.t('reception.confirmDelay', 'Signaler un retard (+15 min) pour ce patient ?'));"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span data-i18n="reception.delayBtn">Retard &gt;10m</span></button>
+                                <button type="submit" class="btn btn-warning btn-sm" onclick="return demanderConfirmation(this.form, window.PrioSanteI18n.t('reception.confirmDelay', 'Signaler un retard (+15 min) pour ce patient ?'));"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span data-i18n="reception.delayBtn">Retard &gt;10m</span></button>
                             </form>
 
                             <!-- Absent button -->
                             <form action="{{ url_for('staff.action_consultation', consultation_id=c.id, action='absent') }}" method="POST" style="display:inline-block; margin-left: 0.25rem;">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm(window.PrioSanteI18n.t('reception.confirmAbsent', 'Marquer ce patient comme absent ? Son créneau sera libéré.'));"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> <span data-i18n="reception.absentBtn">Absent</span></button>
+                                <button type="submit" class="btn btn-secondary btn-sm" onclick="return demanderConfirmation(this.form, window.PrioSanteI18n.t('reception.confirmAbsent', 'Marquer ce patient comme absent ? Son créneau sera libéré.'));"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> <span data-i18n="reception.absentBtn">Absent</span></button>
                             </form>
                         {% elif c.statut == 'arrive' %}
                             <span style="color: #34d399; font-size: 0.85rem; font-weight: 600;" data-i18n="reception.inWaitingRoom">En salle d'attente</span>
@@ -139,4 +139,57 @@
         </table>
     </div>
 </div>
+
+<!-- Fenêtre de confirmation (remplace le confirm() natif du navigateur) -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <p id="confirmModalMessage"></p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button type="button" class="btn btn-outline btn-pill" onclick="fermerConfirmation()" data-i18n="reception.modal.cancel">Annuler</button>
+            <button type="button" class="btn btn-primary btn-pill" onclick="validerConfirmation()" data-i18n="reception.modal.confirm">Confirmer</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var formulaireEnAttente = null;
+
+function demanderConfirmation(form, message) {
+    formulaireEnAttente = form;
+    document.getElementById('confirmModalMessage').textContent = message;
+    document.getElementById('confirmModal').classList.add('open');
+    return false;
+}
+
+function fermerConfirmation() {
+    formulaireEnAttente = null;
+    document.getElementById('confirmModal').classList.remove('open');
+}
+
+function validerConfirmation() {
+    var form = formulaireEnAttente;
+    document.getElementById('confirmModal').classList.remove('open');
+    formulaireEnAttente = null;
+    if (form) {
+        form.submit();
+    }
+}
+
+document.addEventListener('click', function (e) {
+    if (e.target.id === 'confirmModal') {
+        fermerConfirmation();
+    }
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        fermerConfirmation();
+    }
+});
+</script>
 {% endblock %}
