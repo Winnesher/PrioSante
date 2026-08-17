@@ -31,8 +31,11 @@
             </div>
             <span>PrioSanté</span>
         </a>
+        <button type="button" id="navToggle" class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="navLinks">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
         <nav>
-            <ul class="nav-links">
+            <ul class="nav-links" id="navLinks">
                 <li><a href="{{ url_for('patient.index') }}" data-i18n="nav.home">Accueil</a></li>
                 <li><a href="{{ url_for('patient.inscription') }}" data-i18n="nav.register">Inscription Patient</a></li>
                 <li><a href="{{ url_for('patient.mon_rdv') }}" data-i18n="nav.appointment">Mon Rendez-vous</a></li>
@@ -65,7 +68,7 @@
 
     <footer>
         <div style="display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap;">
-            <p style="margin: 0;" data-i18n="footer.copyright">&copy; 2026 PrioSanté — Université de Lomé. Prototype de démonstration hospitalière. Tous droits réservés.</p>
+            <p style="margin: 0;">&copy; {{ annee_courante }} <span data-i18n="footer.copyright">PrioSanté, Université de Lomé. Prototype de démonstration hospitalière. Tous droits réservés.</span></p>
             <a href="{{ url_for('patient.index') }}#equipe" style="color: var(--text-muted); font-weight: 600; text-decoration: underline;" data-i18n="footer.team">Team</a>
         </div>
     </footer>
@@ -103,6 +106,34 @@
     </script>
 
     <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <script>
+        (function () {
+            var toggle = document.getElementById('navToggle');
+            var links = document.getElementById('navLinks');
+            if (!toggle || !links) return;
+
+            function fermerMenu() {
+                links.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+
+            toggle.addEventListener('click', function () {
+                var estOuvert = links.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', estOuvert ? 'true' : 'false');
+            });
+
+            links.querySelectorAll('a').forEach(function (lien) {
+                lien.addEventListener('click', fermerMenu);
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!links.contains(e.target) && !toggle.contains(e.target)) {
+                    fermerMenu();
+                }
+            });
+        })();
+    </script>
 
     <script>
         (function () {

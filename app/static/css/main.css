@@ -102,6 +102,10 @@ body {
     display: flex;
     flex-direction: column;
     transition: background 0.3s ease, color 0.3s ease;
+    /* Filet de sécurité : certaines sections pleine largeur (ex. le hero de
+       l'accueil) utilisent l'astuce 100vw, qui peut créer un débordement
+       horizontal de quelques pixels sur mobile. */
+    overflow-x: hidden;
 }
 
 /* Header & Navbar */
@@ -161,6 +165,20 @@ body {
 
 .nav-links a:hover, .nav-links a.active {
     color: var(--primary-light);
+}
+
+.nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 8px;
+}
+
+.nav-toggle:hover {
+    background: var(--surface-card-soft);
 }
 
 .btn {
@@ -506,8 +524,28 @@ body {
 .status-termine { background: #059669; color: white; }
 .status-en_retard { background: #d97706; color: white; }
 .status-absent { background: #64748b; color: #e2e8f0; }
-.status-ouvert { background: #059669; color: white; }
-.status-ferme { background: #64748b; color: #e2e8f0; }
+/* Statut d'ouverture du service, affiché sur le formulaire d'inscription :
+   volontairement plus grand que les pastilles de statut des tableaux de bord,
+   car c'est une information que le patient doit voir au premier coup d'oeil. */
+.status-ouvert,
+.status-ferme {
+    font-size: 0.95rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    letter-spacing: 0.2px;
+}
+
+.status-ouvert {
+    background: rgba(5, 150, 105, 0.15);
+    border: 1px solid #059669;
+    color: #34d399;
+}
+
+.status-ferme {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+}
 
 /* Forms */
 .form-group {
@@ -1156,6 +1194,21 @@ footer {
     text-align: center;
 }
 
+.team-member-card:hover {
+    animation: cardFloat 2s ease-in-out infinite;
+}
+
+@keyframes cardFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .team-member-card:hover {
+        animation: none;
+    }
+}
+
 .team-avatar {
     width: 150px;
     height: 150px;
@@ -1217,5 +1270,76 @@ footer {
     .feature-row .feature-row-text,
     .feature-row.reverse .feature-row-text {
         order: 2;
+    }
+
+    /* Menu de navigation : bascule en menu déroulant plein écran */
+    .nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .navbar {
+        padding: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: var(--surface-nav);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border-color);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease;
+    }
+
+    .nav-links.open {
+        max-height: 420px;
+        padding: 0.5rem 1.5rem 1.25rem;
+    }
+
+    .nav-links li {
+        width: 100%;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 0.85rem 0;
+    }
+
+    .nav-links .btn {
+        width: 100%;
+        justify-content: center;
+        margin: 0.35rem 0;
+    }
+
+    /* Formulaire d'inscription : les paires de champs passent en une colonne */
+    .wizard-steps {
+        flex-wrap: wrap;
+        gap: 0.75rem 0;
+    }
+
+    .step-title {
+        font-size: 0.75rem;
+    }
+
+    /* Titre du hero : 3.2rem est illisible sur un écran de téléphone */
+    .hero-fade-2 {
+        font-size: 2.1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Champs affichés côte à côte (Nom/Prénom, etc.) : trop étroits en dessous
+       de ~480px, on les empile plutôt que de les compresser. */
+    .form-group-pair {
+        grid-template-columns: 1fr !important;
     }
 }

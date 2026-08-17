@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Inscription Patient — PrioSanté{% endblock %}
+{% block title %}Inscription Patient : PrioSanté{% endblock %}
 
 {% block content %}
 <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
@@ -11,9 +11,9 @@
 
     <div style="text-align: center; margin-bottom: 2rem;">
         {% if service_ouvert %}
-        <span class="status-pill status-ouvert" data-i18n="status.serviceOuvert">Service ouvert</span>
+        <span class="status-pill status-ouvert"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> <span data-i18n="status.serviceOuvert">Service ouvert</span></span>
         {% else %}
-        <span class="status-pill status-ferme" data-i18n="status.serviceFerme">Service fermé — prochain créneau : demain 08h00</span>
+        <span class="status-pill status-ferme"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="7" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span data-i18n="status.serviceFerme">Service fermé</span></span>
         {% endif %}
     </div>
 
@@ -39,7 +39,7 @@
         <!-- Étape 1 : Coordonnées -->
         <div class="wizard-step-content" id="step-1">
             <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="inscription.step1.heading">Étape 1 : Informations Personnelles</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
                     <label class="form-label" data-i18n="inscription.field.lastName">Nom *</label>
                     <input type="text" name="nom" class="form-control" placeholder="ex: KOGNON" data-i18n-placeholder="inscription.field.lastNamePh" pattern="[A-Za-zÀ-ÖØ-öø-ÿ' -]+" title="Le nom ne doit contenir que des lettres" oninput="lettersOnly(this)" required>
@@ -50,7 +50,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="form-group">
                     <label class="form-label" data-i18n="inscription.field.phone">Numéro de Téléphone (SMS) *</label>
                     <div style="display: flex; gap: 0.5rem;">
@@ -140,8 +140,9 @@
                             <div>
                                 <strong style="font-size: 1.1rem; color: var(--primary-light);">{{ service.nom }}</strong>
                                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">{{ service.description }}</p>
-                                <span style="font-size: 0.8rem; background: rgba(13,148,136,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary-light); margin-top: 0.5rem; display: inline-block;">
-                                    ⏱️ <span data-i18n="inscription.step2.duration">Durée moyenne de consultation</span> : {{ service.duree_moyenne_consultation }} min
+                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; background: rgba(13,148,136,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary-light); margin-top: 0.5rem;">
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+                                    <span data-i18n="inscription.step2.duration">Durée moyenne de consultation</span> : {{ service.duree_moyenne_consultation }} min
                                 </span>
                             </div>
                         </label>

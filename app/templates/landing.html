@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}PrioSanté — Système Intelligent de Gestion des Files d'Attente Hospitalières{% endblock %}
+{% block title %}PrioSanté : Système Intelligent de Gestion des Files d'Attente Hospitalières{% endblock %}
 
 {% block content %}
 <!-- Hero Section Full-Width avec carrousel photo (fondu enchaîné) -->
 <div style="position: relative; width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); margin-top: -2rem; min-height: 82vh; display: flex; align-items: center; padding: 4rem 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.5); margin-bottom: 4rem; overflow: hidden;">
 
     <div class="hero-carousel">
-        <div class="hero-slide active" style="background-image: url('{{ url_for('static', filename='images/priosante_hero_slide_1.jpg') }}');"></div>
-        <div class="hero-slide" style="background-image: url('{{ url_for('static', filename='images/priosante_hero_slide_2.jpg') }}');"></div>
+        <div class="hero-slide active" style="background-image: url({{ url_for('static', filename='images/priosante_hero_slide_1.jpg') }});"></div>
+        <div class="hero-slide" style="background-image: url({{ url_for('static', filename='images/priosante_hero_slide_2.jpg') }});"></div>
     </div>
     <div style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.65) 45%, rgba(15, 23, 42, 0.05) 85%); z-index: 1;"></div>
 
@@ -30,7 +30,7 @@
             </p>
 
             <!-- Compteurs Animés en Direct (0 min -> 15 min & 0% -> 100%) -->
-            <div class="hero-fade hero-fade-4" style="display: flex; gap: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.25); padding-top: 1.5rem;">
+            <div class="hero-fade hero-fade-4" style="display: flex; flex-wrap: wrap; gap: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.25); padding-top: 1.5rem;">
                 <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); padding: 0.75rem 1.25rem; border-radius: 12px; backdrop-filter: blur(10px); min-width: 130px; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 900; color: #5eead4;" id="count-creneau">0 min</div>
                     <div style="font-size: 0.8rem; color: #cbd5e1; font-weight: 600; margin-top: 0.25rem;" data-i18n="landing.hero.stat1">Créneaux optimisés</div>
@@ -130,7 +130,7 @@
             <img src="{{ url_for('static', filename='images/priosante_hero_visual.png') }}" alt="Inscription patient PrioSanté">
         </div>
         <div class="feature-row-text">
-            <div class="feature-row-eyebrow" data-i18n="landing.how.step1.eyebrow">Étape 1 — Patient</div>
+            <div class="feature-row-eyebrow" data-i18n="landing.how.step1.eyebrow">Étape 1 : Patient</div>
             <h3 data-i18n="landing.how.step1.title">Une inscription simple, où que vous soyez</h3>
             <p data-i18n="landing.how.step1.desc">
                 Depuis votre téléphone, renseignez vos coordonnées et répondez à un questionnaire de symptômes en 3 étapes.
@@ -153,7 +153,7 @@
             <img src="{{ url_for('static', filename='images/priosante_3d_tablet_dashboard.png') }}" alt="Dashboard personnel soignant PrioSanté">
         </div>
         <div class="feature-row-text">
-            <div class="feature-row-eyebrow" data-i18n="landing.how.step2.eyebrow">Étape 2 — Personnel Soignant</div>
+            <div class="feature-row-eyebrow" data-i18n="landing.how.step2.eyebrow">Étape 2 : Personnel Soignant</div>
             <h3 data-i18n="landing.how.step2.title">Un pilotage temps réel pour les équipes</h3>
             <p data-i18n="landing.how.step2.desc">
                 Réceptionnistes et médecins disposent chacun d'un tableau de bord dédié : file d'attente triée par priorité,
@@ -176,7 +176,7 @@
             <img src="{{ url_for('static', filename='images/priosante_step3_consultation.jpg') }}" alt="Jour de la consultation PrioSanté">
         </div>
         <div class="feature-row-text">
-            <div class="feature-row-eyebrow" data-i18n="landing.how.step3.eyebrow">Étape 3 — Jour de la Consultation</div>
+            <div class="feature-row-eyebrow" data-i18n="landing.how.step3.eyebrow">Étape 3 : Jour de la Consultation</div>
             <h3 data-i18n="landing.how.step3.title">Une prise en charge à l'heure exacte</h3>
             <p data-i18n="landing.how.step3.desc">
                 Le jour J, vous êtes accueilli à l'heure exacte de votre créneau et pris en charge par un médecin

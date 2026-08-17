@@ -75,6 +75,13 @@ class Personnel(db.Model):
 
 class Consultation(db.Model):
     __tablename__ = 'consultations'
+    __table_args__ = (
+        # Empêche deux consultations distinctes d'occuper le même créneau pour
+        # un même service/jour, même en cas d'inscriptions simultanées (les
+        # lignes avec heure_prevue=NULL, ex. Urgence, ne sont jamais en conflit
+        # entre elles : NULL n'est jamais égal à NULL pour une contrainte SQL).
+        db.UniqueConstraint('service_id', 'date_consultation', 'heure_prevue', name='uq_consultation_creneau'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     code_consultation = db.Column(db.String(20), unique=True, nullable=False)

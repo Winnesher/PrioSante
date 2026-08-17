@@ -1,4 +1,5 @@
 import os
+from datetime import date
 from flask import Flask
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
@@ -55,6 +56,12 @@ def create_app(test_config=None):
     db.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+
+    @app.context_processor
+    def injecter_annee_courante():
+        """Rend l'année courante disponible dans tous les templates, pour que
+        la mention de copyright n'ait pas à être mise à jour à la main."""
+        return {'annee_courante': date.today().year}
 
     @app.after_request
     def set_security_headers(response):
