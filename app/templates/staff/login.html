@@ -13,7 +13,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label class="form-label" data-i18n="login.username">Nom d'utilisateur</label>
-            <input type="text" name="username" class="form-control" placeholder="ex: reception1 ou dr.kognon" required autofocus>
+            <input type="text" name="username" class="form-control" data-i18n-placeholder="login.usernamePh" placeholder="Votre identifiant" required autofocus>
         </div>
 
         <div class="form-group">
@@ -26,13 +26,5 @@
             <span data-i18n="login.submit">Se Connecter au Dashboard</span>
         </button>
     </form>
-
-    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted);">
-        <strong data-i18n="login.demoAccounts">Comptes de démonstration :</strong>
-        <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
-            <li><span data-i18n="login.reception">Réception</span> : <code>reception1</code> / <code>demo123</code></li>
-            <li><span data-i18n="login.doctor">Médecin</span> : <code>dr.kognon</code> / <code>demo123</code></li>
-        </ul>
-    </div>
 </div>
 {% endblock %}
