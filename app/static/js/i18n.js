@@ -182,11 +182,9 @@
             'login.title': 'Hospital Staff Area',
             'login.subtitle': 'Secure access for Receptionist or Doctor accounts.',
             'login.username': 'Username',
+            'login.usernamePh': 'Your username',
             'login.password': 'Password',
             'login.submit': 'Log In to Dashboard',
-            'login.demoAccounts': 'Demo accounts:',
-            'login.reception': 'Reception',
-            'login.doctor': 'Doctor',
 
             // dashboard_reception.html
             'reception.title': 'Reception Dashboard',
