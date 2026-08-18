@@ -103,10 +103,12 @@
                     <td>
                         {% if c.statut in ['arrive', 'en_attente', 'en_retard'] %}
                             <form action="{{ url_for('staff.action_consultation', consultation_id=c.id, action='en_consultation') }}" method="POST" style="display:inline-block;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-primary btn-sm"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2 6 4-14 2 8h6"></path></svg> <span data-i18n="medecin.callPatient">Appeler Patient</span></button>
                             </form>
                         {% elif c.statut == 'en_consultation' %}
                             <form action="{{ url_for('staff.action_consultation', consultation_id=c.id, action='termine') }}" method="POST" style="display:inline-block;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success btn-sm"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg> <span data-i18n="medecin.endConsultation">Terminer Consultation</span></button>
                             </form>
                         {% elif c.statut == 'termine' %}

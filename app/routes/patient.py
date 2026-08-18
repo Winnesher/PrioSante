@@ -16,8 +16,11 @@ from app.models import Service, Patient, Consultation
 from app.scoring import BAREME_SYMPTOMS, evaluer_score_et_priorite
 from app.planning import attribuer_creneau
 from app.notifications import envoyer_notification_simulee
+from app import limiter
 
 patient_bp = Blueprint('patient', __name__)
+
+GENRES_AUTORISES = {'M', 'F', 'Autre'}
 
 @patient_bp.route('/', methods=['GET'])
 def index():
@@ -57,6 +60,15 @@ def inscription():
             flash("Veuillez cocher au moins un symptôme avant de valider votre demande.", "danger")
             return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
                                     date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance)
+
+        service = db.session.get(Service, service_id) if service_id is not None else None
+        if not service:
+            flash("Le service sélectionné est invalide. Veuillez réessayer.", "danger")
+            return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
+                                    date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance)
+
+        if genre not in GENRES_AUTORISES:
+            genre = 'Autre'
 
         # Créer ou retrouver le patient
         patient = Patient.query.filter_by(telephone=telephone).first()
@@ -129,6 +141,7 @@ def urgence(code):
     return render_template('patient/urgence.html', consultation=consultation)
 
 @patient_bp.route('/mon-rdv', methods=['GET', 'POST'])
+@limiter.limit("10 per minute", methods=['POST'])
 def mon_rdv():
     consultation = None
     recherche_effectuee = False

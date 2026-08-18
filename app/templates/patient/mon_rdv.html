@@ -10,6 +10,7 @@
     </p>
 
     <form action="{{ url_for('patient.mon_rdv') }}" method="POST" style="margin-bottom: 2rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="display: flex; gap: 0.75rem;">
             <input type="text" name="query" class="form-control" placeholder="Code RDV (ex: PS-12345) ou N° Téléphone..." data-i18n-placeholder="rdv.searchPh" required>
             <button type="submit" class="btn btn-primary" style="white-space: nowrap;">

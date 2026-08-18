@@ -4,6 +4,7 @@ from app.database import db
 from app.models import Personnel, Consultation, LogRetard, Notification
 from app.planning import gerer_retard_patient, attribuer_creneau
 from app.notifications import envoyer_notification_simulee
+from app import limiter
 
 staff_bp = Blueprint('staff', __name__, url_prefix='/staff')
 
@@ -23,6 +24,7 @@ def staff_required(role=None):
     return decorator
 
 @staff_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=['POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()

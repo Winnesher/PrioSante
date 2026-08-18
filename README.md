@@ -11,10 +11,10 @@ PrioSante est une application web légère développée en Python avec Flask pou
 
 Cette documentation explique l'installation, la configuration, l'exécution et les points importants du projet.
 
-## Badges recommandés
-- Build: (GitHub Actions)
-- Tests: (pytest)
-- Licence: MIT
+## Badges
+
+[![CI](https://github.com/Winnesher/PrioSante/actions/workflows/ci.yml/badge.svg)](https://github.com/Winnesher/PrioSante/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/Licence-MIT-blue.svg)](LICENSE)
 
 ## Table des matières
 - Installation
@@ -43,16 +43,18 @@ pip install -r requirements.txt
 
 ## Configuration
 
-L'application utilise par défaut une base SQLite locale située dans `instance/priosante.sqlite` et une `SECRET_KEY` de développement. Pour la production, définissez les variables d'environnement suivantes :
+L'application utilise par défaut une base SQLite locale située dans `instance/priosante.sqlite` et une `SECRET_KEY` de développement. Copiez `.env.example` en `.env` pour voir la liste commentée des variables. Pour la production, définissez :
 
-- `PRIOSANTE_SECRET_KEY` — clé secrète Flask (remplace la valeur par défaut)
-- `DATABASE_URL` — (optionnel) URI SQLAlchemy (ex. `sqlite:///instance/priosante.sqlite` ou `postgresql://user:pass@host/db`)
+- `PRIOSANTE_SECRET_KEY` — clé secrète Flask (remplace la valeur par défaut, utilisée pour signer les sessions et les jetons CSRF)
+- `DATABASE_URL` — URI de connexion (ex. `postgresql://user:pass@host/db` ; Render fournit automatiquement une URL `postgres://`, réécrite en interne vers le driver `psycopg`)
+- `FLASK_DEBUG` — `1` pour activer le mode debug en local uniquement (jamais en production : le débogueur Werkzeug permet l'exécution de code arbitraire)
+- `PORT` — port d'écoute (fourni automatiquement par Render)
 
 Exemple (macOS / Linux) :
 
 ```bash
 export PRIOSANTE_SECRET_KEY="change_me_to_a_secure_value"
-export DATABASE_URL="sqlite:///instance/priosante.sqlite"
+export FLASK_DEBUG=1
 ```
 
 Notes :
@@ -81,7 +83,7 @@ python run.py
 Pour un déploiement production, exécutez derrière un serveur WSGI (gunicorn) et fournissez `PRIOSANTE_SECRET_KEY` et `DATABASE_URL` :
 
 ```bash
-gunicorn -w 4 "run:create_app()" -b 0.0.0.0:8000
+gunicorn -w 4 run:app -b 0.0.0.0:8000
 ```
 
 ## Tests
@@ -108,18 +110,47 @@ Si nécessaire, activez un environnement propre et installez les dépendances av
   - `app/scoring.py` : barème et évaluation de priorité
   - `app/notifications.py` : écriture des notifications en base
   - `app/routes/` : blueprints `patient`, `staff`, `api`
-- `tests/` : tests unitaires (planning, scoring, rôles staff)
+- `tests/` : tests unitaires (planning, scoring, rôles staff, sécurité)
+- `render.yaml` : Blueprint Render (service web + base PostgreSQL)
+- `.github/workflows/ci.yml` : pipeline CI/CD (tests puis déploiement gaté)
+- `.env.example` : variables d'environnement documentées
+
+## Déploiement (Render)
+
+Le projet est prêt pour un déploiement sur [Render](https://render.com) via le Blueprint `render.yaml` à la racine, qui décrit :
+- un service web Python (build `pip install -r requirements.txt`, démarrage `gunicorn run:app`) ;
+- une base PostgreSQL managée, liée automatiquement via `DATABASE_URL`.
+
+Étapes :
+1. Créer un compte Render et connecter le dépôt GitHub.
+2. Dans le dashboard Render, choisir "New Blueprint" et sélectionner ce dépôt — `render.yaml` est détecté automatiquement.
+3. Une fois le service créé, copier l'URL du **Deploy Hook** (Settings du service web) et l'ajouter comme secret GitHub `RENDER_DEPLOY_HOOK_URL` (voir section CI/CD ci-dessous).
+4. Peupler la base de démonstration une seule fois via le Shell Render du service :
+   ```bash
+   SEED_CONFIRM=yes python seed.py
+   ```
+
+## CI/CD
+
+Un pipeline GitHub Actions (`.github/workflows/ci.yml`) s'exécute à chaque push / pull request :
+1. **Job `test`** : installe les dépendances et lance `pytest -q`.
+2. **Job `deploy`** (uniquement sur push vers `main`, et seulement si `test` réussit) : déclenche un déploiement Render via son Deploy Hook.
+
+Ce découplage garantit qu'aucun code cassé n'est déployé automatiquement — contrairement à l'auto-déploiement par défaut de Render, le déploiement est explicitement gaté par les tests.
 
 ## Sécurité & bonnes pratiques
 
 - Ne pas exposer `instance/priosante.sqlite` ou tout fichier contenant des données sensibles.
-- Remplacer la `SECRET_KEY` de développement par une valeur sûre en production.
-- Si vous utilisez HTTPS, terminez TLS au niveau du load‑balancer / reverse proxy.
-- Remplacer SQLite par Postgres/MySQL pour la production.
+- Remplacer la `SECRET_KEY` de développement par une valeur sûre en production (`PRIOSANTE_SECRET_KEY`).
+- Le mode debug (`FLASK_DEBUG=1`) ne doit jamais être activé en production.
+- CSRF protégé sur tous les formulaires (Flask-WTF), rate-limiting sur `/staff/login` et `/mon-rdv` (Flask-Limiter), headers de sécurité (CSP, X-Frame-Options, etc.) posés sur chaque réponse.
+- Les endpoints `/api/queue-status` et `/api/notifications-log` exigent une session personnel connectée.
+- Si vous utilisez HTTPS, terminez TLS au niveau du load‑balancer / reverse proxy (Render le gère automatiquement).
+- PostgreSQL est utilisé en production (SQLite reste réservé au développement local — son fichier ne persiste pas sur le filesystem éphémère de Render).
 
 ## Points d'attention (pour les contributeurs)
 
-- `seed.py` contient des identifiants de démonstration — changez/retirez-les avant publication publique.
+- `seed.py` contient des identifiants de démonstration — changez/retirez-les avant publication publique. Le script refuse de s'exécuter contre une base non-SQLite sans `SEED_CONFIRM=yes`, pour éviter d'effacer accidentellement des données de production.
 - Vérifiez les endpoints d'API dans `app/routes/api.py` avant d'exposer des données sensibles.
 - Ajouter des tests supplémentaires pour la logique métier avant changement majeur (scoring / planning).
 

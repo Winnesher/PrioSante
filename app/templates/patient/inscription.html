@@ -26,7 +26,8 @@
     </div>
 
     <form action="{{ url_for('patient.inscription') }}" method="POST" id="inscriptionForm" onsubmit="return validerSoumission(event)">
-        
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
         <!-- Étape 1 : Coordonnées -->
         <div class="wizard-step-content" id="step-1">
             <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="inscription.step1.heading">Étape 1 : Informations Personnelles</h3>
