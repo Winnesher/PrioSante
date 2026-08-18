@@ -178,7 +178,7 @@ Quatre limites sont assumées à ce stade du projet, plutôt que corrigées dans
 Projet réalisé par 4 étudiants en Physique de l'Université de Lomé (UE PHY330) :
 
 - **KOGNON Kokou Romeo**
-- **OKOBA Yaou Igor Ben**
+- **OKOBA Yaou Igor**
 - **SAKIE Komlan Elom Winner**
 - **SODJA Makou Abraham**
 
