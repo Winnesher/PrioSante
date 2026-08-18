@@ -1,3 +1,5 @@
+import os
+import sys
 from app import create_app
 from app.database import db
 from app.models import Service, Questionnaire, Personnel, Medecin, Patient, Consultation
@@ -7,6 +9,16 @@ from datetime import date
 
 def seed_database():
     app = create_app()
+
+    database_url = os.environ.get('DATABASE_URL', '')
+    if database_url and not database_url.startswith('sqlite'):
+        if os.environ.get('SEED_CONFIRM') != 'yes':
+            print("[ERREUR] DATABASE_URL ne pointe pas vers une base SQLite locale.")
+            print("         Ce script efface toutes les donnees existantes (db.drop_all()).")
+            print("         Si vous etes certain de vouloir reinitialiser cette base,")
+            print("         relancez avec la variable d'environnement SEED_CONFIRM=yes.")
+            sys.exit(1)
+
     with app.app_context():
         print("[INFO] Reinitialisation et peuplement de la base de donnees PrioSante...")
         db.drop_all()
