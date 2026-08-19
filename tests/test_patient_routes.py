@@ -58,3 +58,46 @@ def test_inscription_meme_telephone_noms_differents_cree_deux_patients():
             noms = sorted((p.nom, p.prenom) for p in patients)
             assert len(patients) == 2
             assert noms == [('KOUADIO', 'Ama'), ('MENSAH', 'Yao')]
+
+
+def test_inscription_date_naissance_aujourdhui_et_future_refusees():
+    from datetime import date, timedelta
+    app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'})
+    with app.test_client() as client:
+        with app.app_context():
+            db.create_all()
+            service = Service(nom="Médecine Générale")
+            db.session.add(service)
+            db.session.commit()
+            service_id = service.id
+
+        today_str = date.today().isoformat()
+        future_str = (date.today() + timedelta(days=5)).isoformat()
+        too_old_str = (date.today() - timedelta(days=365 * 125)).isoformat()
+
+        # Date d'aujourd'hui
+        res1 = client.post('/inscription', data={
+            'nom': 'SOSSOU', 'prenom': 'Koffi', 'telephone': '+22890111111',
+            'date_naissance': today_str, 'service_id': str(service_id),
+            'symptomes': ['toux_rhume']
+        })
+        assert res1.status_code == 200
+        assert "Date de naissance invalide".encode('utf-8') in res1.data
+
+        # Date future
+        res2 = client.post('/inscription', data={
+            'nom': 'SOSSOU', 'prenom': 'Koffi', 'telephone': '+22890111111',
+            'date_naissance': future_str, 'service_id': str(service_id),
+            'symptomes': ['toux_rhume']
+        })
+        assert res2.status_code == 200
+        assert "Date de naissance invalide".encode('utf-8') in res2.data
+
+        # Date > 120 ans
+        res3 = client.post('/inscription', data={
+            'nom': 'SOSSOU', 'prenom': 'Koffi', 'telephone': '+22890111111',
+            'date_naissance': too_old_str, 'service_id': str(service_id),
+            'symptomes': ['toux_rhume']
+        })
+        assert res3.status_code == 200
+        assert "Date de naissance invalide".encode('utf-8') in res3.data

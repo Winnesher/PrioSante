@@ -56,7 +56,7 @@ def inscription():
                                     service_ouvert=service_est_ouvert())
 
         if date_naissance and not (date_min_naissance <= date_naissance <= date_max_naissance):
-            flash("Date de naissance invalide.", "danger")
+            flash("Date de naissance invalide : la date ne peut pas être aujourd'hui, dans le futur ou dépasser 120 ans.", "danger")
             return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
                                     date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance,
                                     service_ouvert=service_est_ouvert())

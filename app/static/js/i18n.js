@@ -111,6 +111,9 @@
             'inscription.js.needSymptom': 'Please check at least one symptom before submitting your request.',
             'inscription.js.fillFields': 'Please fill in your Last Name, First Name, Phone Number and Date of Birth before continuing.',
             'inscription.js.lettersOnly': 'Last Name and First Name must only contain letters.',
+            'inscription.js.invalidDobTodayOrFuture': 'The date of birth cannot be today or in the future. Please select a valid past date of birth.',
+            'inscription.js.invalidDobTooOld': 'The date of birth is too far in the past (over 120 years ago). Please select a valid date of birth.',
+            'inscription.js.invalidDob': 'Please select a valid date of birth before continuing.',
 
             // confirmation.html
             'confirmation.title': 'Your Appointment is Confirmed',
