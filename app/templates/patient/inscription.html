@@ -109,7 +109,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" data-i18n="inscription.field.dob">Date de Naissance *</label>
-                    <input type="date" name="date_naissance" class="form-control" min="{{ date_min_naissance }}" max="{{ date_max_naissance }}" required>
+                    <input type="date" name="date_naissance" id="dateNaissanceInput" class="form-control" min="{{ date_min_naissance }}" max="{{ date_max_naissance }}" onchange="validerDateNaissance(this, true)" required>
                 </div>
             </div>
 
@@ -279,12 +279,61 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
+function validerDateNaissance(inputEl, notifyIfInvalid = false) {
+    if (!inputEl) inputEl = document.querySelector('input[name="date_naissance"]');
+    const val = inputEl ? inputEl.value.trim() : '';
+
+    if (!val) {
+        if (notifyIfInvalid) {
+            showValidationModal(window.PrioSanteI18n.t('inscription.js.fillFields', 'Veuillez remplir votre Nom, Prénom, Téléphone et Date de Naissance avant de continuer.'));
+        }
+        return false;
+    }
+
+    const inputDate = new Date(val);
+    if (isNaN(inputDate.getTime())) {
+        if (notifyIfInvalid) {
+            showValidationModal(window.PrioSanteI18n.t('inscription.js.invalidDob', 'Veuillez bien sélectionner une date de naissance valide.'));
+        }
+        return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (inputDate >= today) {
+        if (notifyIfInvalid) {
+            showValidationModal(window.PrioSanteI18n.t(
+                'inscription.js.invalidDobTodayOrFuture',
+                "La date de naissance ne peut pas être aujourd'hui ni dans le futur. Veuillez bien sélectionner une date de naissance valide dans le passé."
+            ));
+        }
+        return false;
+    }
+
+    const minDate = new Date(today);
+    minDate.setFullYear(minDate.getFullYear() - 120);
+
+    if (inputDate < minDate) {
+        if (notifyIfInvalid) {
+            showValidationModal(window.PrioSanteI18n.t(
+                'inscription.js.invalidDobTooOld',
+                "La date de naissance est trop ancienne (plus de 120 ans). Veuillez bien sélectionner votre date de naissance réelle."
+            ));
+        }
+        return false;
+    }
+
+    return true;
+}
+
 function nextStep(step) {
     if (step === 2) {
         const nom = document.querySelector('input[name="nom"]').value.trim();
         const prenom = document.querySelector('input[name="prenom"]').value.trim();
         const telLocal = document.getElementById('telephoneLocal').value.trim();
-        const dateNaissance = document.querySelector('input[name="date_naissance"]').value.trim();
+        const dobInput = document.querySelector('input[name="date_naissance"]');
+        const dateNaissance = dobInput ? dobInput.value.trim() : '';
 
         if (!nom || !prenom || !telLocal || !dateNaissance) {
             showValidationModal(window.PrioSanteI18n.t('inscription.js.fillFields', 'Veuillez remplir votre Nom, Prénom, Téléphone et Date de Naissance avant de continuer.'));
@@ -292,6 +341,9 @@ function nextStep(step) {
         }
         if (!NAME_PATTERN.test(nom) || !NAME_PATTERN.test(prenom)) {
             showValidationModal(window.PrioSanteI18n.t('inscription.js.lettersOnly', 'Le Nom et le Prénom ne doivent contenir que des lettres.'));
+            return;
+        }
+        if (!validerDateNaissance(dobInput, true)) {
             return;
         }
     }
