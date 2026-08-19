@@ -290,7 +290,19 @@ function validerDateNaissance(inputEl, notifyIfInvalid = false) {
         return false;
     }
 
-    const inputDate = new Date(val);
+    const parts = val.split('-');
+    if (parts.length !== 3) {
+        if (notifyIfInvalid) {
+            showValidationModal(window.PrioSanteI18n.t('inscription.js.invalidDob', 'Veuillez bien sélectionner une date de naissance valide.'));
+        }
+        return false;
+    }
+
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+
+    const inputDate = new Date(year, month, day);
     if (isNaN(inputDate.getTime())) {
         if (notifyIfInvalid) {
             showValidationModal(window.PrioSanteI18n.t('inscription.js.invalidDob', 'Veuillez bien sélectionner une date de naissance valide.'));
@@ -298,23 +310,25 @@ function validerDateNaissance(inputEl, notifyIfInvalid = false) {
         return false;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Obtenir la date d'aujourd'hui (le présent) à minuit local
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (inputDate >= today) {
+    // Comparaison avec la date d'aujourd'hui (le présent) et le futur
+    if (inputDate.getTime() >= today.getTime()) {
         if (notifyIfInvalid) {
             showValidationModal(window.PrioSanteI18n.t(
                 'inscription.js.invalidDobTodayOrFuture',
-                "La date de naissance ne peut pas être aujourd'hui ni dans le futur. Veuillez bien sélectionner une date de naissance valide dans le passé."
+                "La date d'aujourd'hui (date du présent) et les dates futures ne peuvent pas être choisies comme date de naissance. Veuillez bien sélectionner votre date de naissance dans le passé."
             ));
         }
         return false;
     }
 
-    const minDate = new Date(today);
-    minDate.setFullYear(minDate.getFullYear() - 120);
+    // Date minimale (120 ans dans le passé)
+    const minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate());
 
-    if (inputDate < minDate) {
+    if (inputDate.getTime() < minDate.getTime()) {
         if (notifyIfInvalid) {
             showValidationModal(window.PrioSanteI18n.t(
                 'inscription.js.invalidDobTooOld',
