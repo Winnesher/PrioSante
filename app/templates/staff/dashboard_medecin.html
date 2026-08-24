@@ -15,6 +15,7 @@
     </div>
     <div>
         <span class="badge badge-elevee" data-i18n="medecin.role">Rôle : Médecin Praticien</span>
+        <button type="button" onclick="testerSonAlerte()" class="btn btn-sm btn-outline" style="margin-left: 0.5rem;" title="Tester le son des alertes d'urgence">🔔 Tester le son</button>
     </div>
 </div>
 
@@ -59,7 +60,7 @@
             </thead>
             <tbody>
                 {% for c in consultations %}
-                <tr style="{% if c.priorite == 'Urgence' %}background: rgba(239, 68, 68, 0.1);{% endif %}">
+                <tr style="{% if c.priorite == 'Urgence' or c.is_red_flag %}background: rgba(239, 68, 68, 0.1);{% endif %}">
                     <td>
                         <strong>{{ c.heure_prevue or 'URGENCE' }}</strong>
                         {% if c.creneau_depasse %}
@@ -137,4 +138,124 @@
         </table>
     </div>
 </div>
+
+<!-- Fenêtre d'alerte Urgence -->
+<div class="modal-overlay" id="emergencyAlertModal">
+    <div class="modal-box" style="border: 2px solid #f87171;">
+        <div class="modal-icon" style="color: #f87171;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <h3 style="margin-bottom: 0.5rem; color: #f87171;">🚨 Alerte Urgence Médicale</h3>
+        <p id="emergencyAlertModalMessage" style="font-size: 0.95rem; margin-bottom: 1.25rem; text-align: left; background: rgba(255,255,255,0.05); padding: 0.75rem; border-radius: 8px;"></p>
+        <div style="display: flex; justify-content: center;">
+            <button type="button" class="btn btn-primary btn-pill" onclick="fermerAlerteUrgence()">Compris</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ==========================================
+// SYSTEME ALARME SONORE ET POLLING TEMPS REEL MEDECIN (2 SECONDES)
+// ==========================================
+var audioCtx = null;
+var countUrgencesPriseEnCompte = {{ stats.urgences }};
+
+function initAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// Auto-déverrouillage sonore dès toute interaction utilisateur
+['click', 'touchstart', 'mousemove', 'scroll', 'keydown'].forEach(function(evt) {
+    document.addEventListener(evt, initAudioContext, { passive: true, once: false });
+});
+
+function jouersonAlerteUrgence() {
+    initAudioContext();
+    if (!audioCtx) return;
+
+    try {
+        var now = audioCtx.currentTime;
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        
+        // Bip sirène d'urgence puissant (880Hz -> 587Hz -> 880Hz -> 587Hz -> 880Hz)
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.linearRampToValueAtTime(587, now + 0.3);
+        osc.frequency.linearRampToValueAtTime(880, now + 0.6);
+        osc.frequency.linearRampToValueAtTime(587, now + 0.9);
+        osc.frequency.linearRampToValueAtTime(880, now + 1.2);
+
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 1.4);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 1.4);
+    } catch (e) {
+        console.warn("Erreur alarme sonore:", e);
+    }
+}
+
+function testerSonAlerte() {
+    initAudioContext();
+    jouersonAlerteUrgence();
+}
+
+function verifierNouvellesUrgences() {
+    fetch('/api/queue-status')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (!data) return;
+            // Détection automatique dès qu'une urgence (score > 12) arrive
+            if (data.has_urgences && data.urgences_count > countUrgencesPriseEnCompte) {
+                jouersonAlerteUrgence();
+                var item = data.queue.find(function(q) { return q.priorite === 'Urgence' || q.is_red_flag || (q.score && q.score > 12); });
+                if (item) {
+                    var msg = `<strong>🚨 ATTENTION MÉDECIN : NOUVEAU PATIENT EN URGENCE CRITIQUE (Score: ${item.score || '>12'} pts) !</strong><br><br>` +
+                              `<strong>Patient :</strong> ${item.patient_nom} ${item.patient_prenom}<br>` +
+                              `<strong>Code :</strong> ${item.code}<br>` +
+                              `<strong>Symptômes :</strong> ${item.symptomes || 'Non spécifiés'}<br><br>` +
+                              `<span style="color:#f87171; font-weight:700;">Le score dépasse 12 points. Prise en charge prioritaire requise.</span>`;
+                    var msgEl = document.getElementById('emergencyAlertModalMessage');
+                    if (msgEl) msgEl.innerHTML = msg;
+                    var modal = document.getElementById('emergencyAlertModal');
+                    if (modal) modal.classList.add('open');
+                }
+            }
+            countUrgencesPriseEnCompte = data.urgences_count;
+        })
+        .catch(function(err) { console.warn("Erreur verification urgences:", err); });
+}
+
+function fermerAlerteUrgence() {
+    var modal = document.getElementById('emergencyAlertModal');
+    if (modal) modal.classList.remove('open');
+}
+
+document.addEventListener('click', function (e) {
+    if (e.target.id === 'emergencyAlertModal') {
+        fermerAlerteUrgence();
+    }
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        fermerAlerteUrgence();
+    }
+});
+
+// Polling rapide toutes les 2 secondes pour détection immédiate dès la validation patient
+setInterval(verifierNouvellesUrgences, 2000);
+</script>
 {% endblock %}

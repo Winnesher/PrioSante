@@ -101,6 +101,7 @@ def inscription():
         eval_result = evaluer_score_et_priorite(selected_symptoms)
         score = eval_result['score']
         priorite = eval_result['priorite']
+        is_red_flag = eval_result.get('is_red_flag', False)
         symptomes_details_str = ", ".join(eval_result['symptomes_details']) if eval_result['symptomes_details'] else "Aucun symptôme spécifique déclaré"
         
         # Code de consultation unique (ex: PS-A9F32)
@@ -127,6 +128,7 @@ def inscription():
                 service_id=service_id,
                 score=score,
                 priorite=priorite,
+                is_red_flag=is_red_flag,
                 symptomes_declares=symptomes_details_str,
                 date_consultation=date_consultation,
                 heure_prevue=heure_prevue,

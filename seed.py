@@ -95,7 +95,7 @@ def seed_database():
             {
                 "nom": "ADZOH", "prenom": "Afiwa", "tel": "+228 93 44 55 66",
                 "naissance": "1972-01-30",
-                "symptomes": ["confusion", "fievre_elevee"], # Score 14 (Urgence)
+                "symptomes": ["douleur_thoracique", "fievre_elevee"], # Score 19 (Red Flag Urgence Critiques)
                 "statut": "redirection_urgence"
             }
         ]
@@ -125,6 +125,7 @@ def seed_database():
                 medecin_id=medecin.id,
                 score=eval_res["score"],
                 priorite=eval_res["priorite"],
+                is_red_flag=eval_res.get("is_red_flag", False),
                 symptomes_declares=", ".join(eval_res["symptomes_details"]),
                 date_consultation=today,
                 heure_prevue=heure,

@@ -22,15 +22,35 @@ def queue_status():
     consultations = Consultation.query.filter_by(date_consultation=today).all()
     
     data = []
+    has_urgences = False
+    urgences_count = 0
+    
     for c in consultations:
+        is_red_flag = getattr(c, 'is_red_flag', False)
+        is_urg = (c.priorite == 'Urgence' or is_red_flag or (c.score is not None and c.score > 12))
+        if is_urg and c.statut != 'termine':
+            has_urgences = True
+            urgences_count += 1
+
         data.append({
+            'id': c.id,
             'code': c.code_consultation,
             'heure': c.heure_prevue,
             'priorite': c.priorite,
+            'score': c.score,
+            'is_red_flag': is_red_flag,
             'statut': c.statut,
+            'symptomes': c.symptomes_declares,
+            'patient_nom': c.patient.nom.upper() if c.patient else '',
+            'patient_prenom': c.patient.prenom if c.patient else '',
             'service': c.service.nom if c.service else ''
         })
-    return jsonify({'total': len(data), 'queue': data})
+    return jsonify({
+        'total': len(data),
+        'has_urgences': has_urgences,
+        'urgences_count': urgences_count,
+        'queue': data
+    })
 
 @api_bp.route('/notifications-log')
 @staff_session_required
