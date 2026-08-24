@@ -130,8 +130,12 @@ class Consultation(db.Model):
     # Champs de scoring médical
     score = db.Column(db.Integer, nullable=False, default=0)  # Score calculé (somme des points des symptômes)
     priorite = db.Column(db.String(20), nullable=False)  # Priorité : 'Faible', 'Moyenne', 'Élevée', 'Urgence'
-    is_red_flag = db.Column(db.Boolean, default=False, nullable=False)  # Vrai si symptôme à haut risque (ex: AVC, douleur thoracique)
     symptomes_declares = db.Column(db.Text, nullable=True)  # Liste des symptômes déclarés (texte)
+
+    @property
+    def is_red_flag(self):
+        """Détermine si la consultation est un Red Flag / Urgence critique."""
+        return self.priorite == 'Urgence' or (self.score is not None and self.score > 12)
     
     # Champs de planning
     date_consultation = db.Column(db.Date, default=date.today, nullable=False)  # Date de la consultation

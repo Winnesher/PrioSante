@@ -125,7 +125,6 @@ def seed_database():
                 medecin_id=medecin.id,
                 score=eval_res["score"],
                 priorite=eval_res["priorite"],
-                is_red_flag=eval_res.get("is_red_flag", False),
                 symptomes_declares=", ".join(eval_res["symptomes_details"]),
                 date_consultation=today,
                 heure_prevue=heure,

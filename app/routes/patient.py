@@ -128,7 +128,6 @@ def inscription():
                 service_id=service_id,
                 score=score,
                 priorite=priorite,
-                is_red_flag=is_red_flag,
                 symptomes_declares=symptomes_details_str,
                 date_consultation=date_consultation,
                 heure_prevue=heure_prevue,
