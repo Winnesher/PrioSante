@@ -116,7 +116,7 @@ def seed_database():
             eval_res = evaluer_score_et_priorite(pdata["symptomes"])
             code_unique = f"PS-DEMO0{idx}"
             resultat_creneau = attribuer_creneau(service_mg.id, today, eval_res["priorite"])
-            heure = resultat_creneau[1] if resultat_creneau else None
+            date_cons, heure = (resultat_creneau[0], resultat_creneau[1]) if resultat_creneau else (today, None)
 
             consultation = Consultation(
                 code_consultation=code_unique,
@@ -126,11 +126,12 @@ def seed_database():
                 score=eval_res["score"],
                 priorite=eval_res["priorite"],
                 symptomes_declares=", ".join(eval_res["symptomes_details"]),
-                date_consultation=today,
+                date_consultation=date_cons,
                 heure_prevue=heure,
                 statut=pdata["statut"]
             )
             db.session.add(consultation)
+            db.session.commit()
             idx += 1
 
         db.session.commit()

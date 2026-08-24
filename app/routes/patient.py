@@ -42,6 +42,7 @@ def inscription():
         service_id = request.form.get('service_id', type=int)
 
         selected_symptoms = request.form.getlist('symptomes')
+        symptome_libre = request.form.get('symptome_libre', '').strip()
 
         if not nom or not prenom or not telephone or not service_id or not date_naissance:
             flash("Veuillez remplir tous les champs obligatoires du formulaire.", "danger")
@@ -61,8 +62,8 @@ def inscription():
                                     date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance,
                                     service_ouvert=service_est_ouvert())
 
-        if not selected_symptoms:
-            flash("Veuillez cocher au moins un symptôme avant de valider votre demande.", "danger")
+        if not selected_symptoms and not symptome_libre:
+            flash("Veuillez cocher au moins un symptôme ou décrire vos symptômes dans le champ prévu avant de valider votre demande.", "danger")
             return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
                                     date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance,
                                     service_ouvert=service_est_ouvert())
@@ -97,8 +98,8 @@ def inscription():
             patient.genre = genre
             db.session.commit()
 
-        # Évaluation clinique du score
-        eval_result = evaluer_score_et_priorite(selected_symptoms)
+        # Évaluation clinique du score (combinaison cases cochées + saisie libre)
+        eval_result = evaluer_score_et_priorite(selected_symptoms, symptome_libre)
         score = eval_result['score']
         priorite = eval_result['priorite']
         is_red_flag = eval_result.get('is_red_flag', False)
