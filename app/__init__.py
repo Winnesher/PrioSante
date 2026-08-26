@@ -89,6 +89,8 @@ def create_app(test_config=None):
     with app.app_context():
         db.create_all()
         _migrer_schema_auto(app)
+        if not app.config.get('TESTING'):
+            _synchroniser_services_auto(app)
 
     return app
 
@@ -113,3 +115,61 @@ def _migrer_schema_auto(app):
                         conn.execute(text("ALTER TABLE consultations ADD COLUMN longitude FLOAT"))
         except Exception as e:
             app.logger.warning(f"Note de migration automatique de schéma: {e}")
+
+
+SERVICES_CATALOG = [
+    {"nom": "Médecine Générale", "description": "Consultations médicales générales, orientation et suivi des pathologies courantes.", "duree": 20},
+    {"nom": "Pédiatrie", "description": "Soins et suivi médical spécialisé des enfants, des nourrissons et des adolescents.", "duree": 15},
+    {"nom": "Gynécologie & Obstétrique", "description": "Santé de la femme, suivi de grossesse, accouchement, maternité et contraception.", "duree": 20},
+    {"nom": "Cardiologie", "description": "Prévention, diagnostic et traitement des maladies du cœur, hypertension et circulation.", "duree": 20},
+    {"nom": "Dermatologie & Vénéréologie", "description": "Diagnostic et soins des affections de la peau, cheveux, ongles et allergies cutanées.", "duree": 15},
+    {"nom": "Ophtalmologie", "description": "Examen de la vue, chirurgie réfractive, glaucome et maladies oculaires.", "duree": 15},
+    {"nom": "Oto-Rhino-Laryngologie (ORL)", "description": "Prise en charge des troubles des oreilles, du nez, de la gorge, des sinus et de la voix.", "duree": 15},
+    {"nom": "Neurologie", "description": "Traitements des maladies du système nerveux central, migraines, vertiges et suivi AVC.", "duree": 25},
+    {"nom": "Orthopédie & Traumatologie", "description": "Soins des os, articulations, fractures, entorses, prothèses et colonne vertébrale.", "duree": 20},
+    {"nom": "Gastro-Entérologie", "description": "Affections de l'appareil digestif, estomac, foie, pancréas, hépatites et intestins.", "duree": 20},
+    {"nom": "Pneumologie", "description": "Maladies des poumons, asthme, bronchite chronique, toux chronique et voies respiratoires.", "duree": 20},
+    {"nom": "Endocrinologie & Diabétologie", "description": "Gestion du diabète, des troubles de la thyroïde, de l'obésité et des hormones.", "duree": 20},
+    {"nom": "Odontologie & Stomatologie", "description": "Soins dentaires, chirurgie buccale, santé des gencives et prothèses.", "duree": 15},
+    {"nom": "Urologie", "description": "Diagnostic et chirurgie de l'appareil urinaire masculin et féminin, reins et prostate.", "duree": 20},
+    {"nom": "Rhumatologie", "description": "Traitements des douleurs articulaires, arthrose, ostéoporose, tendinites et rhumatismes.", "duree": 20},
+    {"nom": "Néphrologie", "description": "Prévention, diagnostic et suivi des insuffisances rénales et hypertension rénale.", "duree": 20},
+    {"nom": "Psychiatrie & Santé Mentale", "description": "Consultations spécialisées en santé mentale, anxieté, dépression et soutien psychologique.", "duree": 30}
+]
+
+
+def _synchroniser_services_auto(app):
+    """
+    S'assure automatiquement que les 17 services hospitaliers et leurs questionnaires
+    existent en base de données (notamment sur Render PostgreSQL).
+    """
+    from app.models import Service, Questionnaire
+    from app.scoring import BAREME_SYMPTOMS
+    with app.app_context():
+        try:
+            services_existants = {s.nom: s for s in Service.query.all()}
+            mis_a_jour = False
+            for sdata in SERVICES_CATALOG:
+                if sdata["nom"] not in services_existants:
+                    s = Service(
+                        nom=sdata["nom"],
+                        description=sdata["description"],
+                        duree_moyenne_consultation=sdata["duree"]
+                    )
+                    db.session.add(s)
+                    db.session.flush()
+                    services_existants[sdata["nom"]] = s
+                    mis_a_jour = True
+                    for code, qdata in BAREME_SYMPTOMS.items():
+                        q = Questionnaire(
+                            service_id=s.id,
+                            symptome_code=code,
+                            symptome_libelle=qdata['libelle'],
+                            points=qdata['points']
+                        )
+                        db.session.add(q)
+
+            if mis_a_jour:
+                db.session.commit()
+        except Exception as e:
+            app.logger.warning(f"Note de synchronisation des services: {e}")
