@@ -6,18 +6,32 @@
 from app.database import db  # Instance SQLAlchemy pour la base de données
 from app.models import Notification  # Modèle de données
 
+def generer_texte_sms_urgence(consultation):
+    """
+    Génère le texte du SMS d'alerte urgence simulé pour un patient avec civilité dynamique,
+    prénom + nom, et informations de géolocalisation si renseignées.
+    """
+    patient = consultation.patient
+    civilite = patient.civilite if hasattr(patient, 'civilite') else ('M.' if getattr(patient, 'genre', '') == 'M' else ('Mme' if getattr(patient, 'genre', '') == 'F' else 'M. / Mme'))
+    nom_complet = f"{patient.prenom} {patient.nom}".strip()
+    
+    msg = f"PrioSanté ALERTE : {civilite} {nom_complet}, suite à vos symptômes critiques, veuillez vous présenter IMMÉDIATEMENT aux urgences de l'hôpital."
+    
+    loc_parts = []
+    if consultation.adresse_patient and consultation.adresse_patient.strip():
+        loc_parts.append(f"Localisation : {consultation.adresse_patient.strip()}")
+    if consultation.latitude is not None and consultation.longitude is not None:
+        loc_parts.append(f"Position GPS : https://www.google.com/maps?q={consultation.latitude},{consultation.longitude}")
+        
+    if loc_parts:
+        msg += " " + " — ".join(loc_parts)
+        
+    return msg
+
 def envoyer_notification_simulee(consultation, type_msg='CONFIRMATION', details_extra=None):
     """
     Simule l'envoi d'un SMS ou message USSD au patient.
     Enregistre le message dans la table notifications pour la démonstration.
-    
-    Args:
-        consultation (Consultation): Objet consultation concernée
-        type_msg (str): Type de message ('CONFIRMATION', 'RAPPEL', 'RECALCUL')
-        details_extra (str, optional): Texte supplémentaire pour le message
-        
-    Returns:
-        Notification: Objet notification créé en base de données
     """
     # Récupérer les informations du patient et du service
     patient = consultation.patient
@@ -25,10 +39,9 @@ def envoyer_notification_simulee(consultation, type_msg='CONFIRMATION', details_
     
     # Générer le message selon le type de notification
     if type_msg == 'CONFIRMATION':
-        # Message de confirmation de rendez-vous
+        # Message de confirmation de rendez-vous ou d'urgence
         if consultation.priorite == 'Urgence':
-            message = (f"PrioSanté ALERTE : M. / Mme {patient.nom}, suite à vos symptômes, "
-                       f"veuillez vous présenter IMMÉDIATEMENT aux urgences de l'hôpital.")
+            message = generer_texte_sms_urgence(consultation)
         else:
             message = (f"PrioSanté : Votre RDV en {service.nom} est confirmé pour le "
                        f"{consultation.date_consultation.strftime('%d/%m/%Y')} à {consultation.heure_prevue}. "

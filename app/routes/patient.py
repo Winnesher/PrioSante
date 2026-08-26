@@ -17,8 +17,8 @@ from app.database import db
 from app.models import Service, Patient, Consultation
 from app.scoring import BAREME_SYMPTOMS, evaluer_score_et_priorite
 from app.planning import attribuer_creneau, service_est_ouvert
-from app.notifications import envoyer_notification_simulee
-from app import limiter
+from app.notifications import envoyer_notification_simulee, generer_texte_sms_urgence
+from app import limiter, csrf
 
 patient_bp = Blueprint('patient', __name__)
 
@@ -168,6 +168,41 @@ def confirmation(code):
 def urgence(code):
     consultation = Consultation.query.filter_by(code_consultation=code).first_or_404()
     return render_template('patient/urgence.html', consultation=consultation)
+
+@patient_bp.route('/urgence/<code>/localisation', methods=['POST'])
+@csrf.exempt
+def maj_localisation_urgence(code):
+    consultation = Consultation.query.filter_by(code_consultation=code).first_or_404()
+    data = request.get_json() or {}
+    
+    adresse = data.get('adresse')
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    
+    if adresse is not None:
+        consultation.adresse_patient = str(adresse).strip() if str(adresse).strip() else None
+        
+    if latitude is not None and longitude is not None:
+        try:
+            consultation.latitude = float(latitude)
+            consultation.longitude = float(longitude)
+        except (ValueError, TypeError):
+            pass
+            
+    db.session.commit()
+    
+    # Générer le texte SMS simulé actualisé
+    sms_text = generer_texte_sms_urgence(consultation)
+    
+    return jsonify({
+        'success': True,
+        'message': 'Localisation enregistrée avec succès.',
+        'adresse': consultation.adresse_patient,
+        'latitude': consultation.latitude,
+        'longitude': consultation.longitude,
+        'sms_text': sms_text,
+        'google_maps_url': f"https://www.google.com/maps?q={consultation.latitude},{consultation.longitude}" if (consultation.latitude is not None and consultation.longitude is not None) else None
+    })
 
 @patient_bp.route('/mon-rdv', methods=['GET', 'POST'])
 @limiter.limit("10 per minute", methods=['POST'])

@@ -88,5 +88,28 @@ def create_app(test_config=None):
 
     with app.app_context():
         db.create_all()
+        _migrer_schema_auto(app)
 
     return app
+
+
+def _migrer_schema_auto(app):
+    """
+    Vérifie et ajoute automatiquement les colonnes manquantes (adresse_patient, latitude, longitude)
+    sur les bases de données existantes (SQLite/PostgreSQL) pour éviter OperationalError.
+    """
+    from sqlalchemy import inspect, text
+    with app.app_context():
+        try:
+            inspector = inspect(db.engine)
+            if 'consultations' in inspector.get_table_names():
+                columns = [col['name'] for col in inspector.get_columns('consultations')]
+                with db.engine.begin() as conn:
+                    if 'adresse_patient' not in columns:
+                        conn.execute(text("ALTER TABLE consultations ADD COLUMN adresse_patient TEXT"))
+                    if 'latitude' not in columns:
+                        conn.execute(text("ALTER TABLE consultations ADD COLUMN latitude FLOAT"))
+                    if 'longitude' not in columns:
+                        conn.execute(text("ALTER TABLE consultations ADD COLUMN longitude FLOAT"))
+        except Exception as e:
+            app.logger.warning(f"Note de migration automatique de schéma: {e}")

@@ -24,25 +24,120 @@ def seed_database():
         db.drop_all()
         db.create_all()
 
-        # 1. Création du service de Médecine Générale
-        service_mg = Service(
-            nom="Médecine Générale",
-            description="Consultations médicales générales, orientation et suivi des pathologies courantes.",
-            duree_moyenne_consultation=15
-        )
-        db.session.add(service_mg)
-        db.session.commit()
+        # 1. Création de tous les 17 services hospitaliers (Top 5 les plus demandés + catalogue complet)
+        SERVICES_DATA = [
+            # Top 5 les plus demandés
+            {
+                "nom": "Médecine Générale",
+                "description": "Consultations médicales générales, orientation et suivi des pathologies courantes.",
+                "duree": 20
+            },
+            {
+                "nom": "Pédiatrie",
+                "description": "Soins et suivi médical spécialisé des enfants, des nourrissons et des adolescents.",
+                "duree": 15
+            },
+            {
+                "nom": "Gynécologie & Obstétrique",
+                "description": "Santé de la femme, suivi de grossesse, accouchement, maternité et contraception.",
+                "duree": 20
+            },
+            {
+                "nom": "Cardiologie",
+                "description": "Prévention, diagnostic et traitement des maladies du cœur, hypertension et circulation.",
+                "duree": 20
+            },
+            {
+                "nom": "Dermatologie & Vénéréologie",
+                "description": "Diagnostic et soins des affections de la peau, cheveux, ongles et allergies cutanées.",
+                "duree": 15
+            },
+            # Catalogue complet des spécialités hospitalières
+            {
+                "nom": "Ophtalmologie",
+                "description": "Examen de la vue, chirurgie réfractive, glaucome et maladies oculaires.",
+                "duree": 15
+            },
+            {
+                "nom": "Oto-Rhino-Laryngologie (ORL)",
+                "description": "Prise en charge des troubles des oreilles, du nez, de la gorge, des sinus et de la voix.",
+                "duree": 15
+            },
+            {
+                "nom": "Neurologie",
+                "description": "Traitements des maladies du système nerveux central, migraines, vertiges et suivi AVC.",
+                "duree": 25
+            },
+            {
+                "nom": "Orthopédie & Traumatologie",
+                "description": "Soins des os, articulations, fractures, entorses, prothèses et colonne vertébrale.",
+                "duree": 20
+            },
+            {
+                "nom": "Gastro-Entérologie",
+                "description": "Affections de l'appareil digestif, estomac, foie, pancréas, hépatites et intestins.",
+                "duree": 20
+            },
+            {
+                "nom": "Pneumologie",
+                "description": "Maladies des poumons, asthme, bronchite chronique, toux chronique et voies respiratoires.",
+                "duree": 20
+            },
+            {
+                "nom": "Endocrinologie & Diabétologie",
+                "description": "Gestion du diabète, des troubles de la thyroïde, de l'obésité et des hormones.",
+                "duree": 20
+            },
+            {
+                "nom": "Odontologie & Stomatologie",
+                "description": "Soins dentaires, chirurgie buccale, santé des gencives et prothèses.",
+                "duree": 15
+            },
+            {
+                "nom": "Urologie",
+                "description": "Diagnostic et chirurgie de l'appareil urinaire masculin et féminin, reins et prostate.",
+                "duree": 20
+            },
+            {
+                "nom": "Rhumatologie",
+                "description": "Traitements des douleurs articulaires, arthrose, ostéoporose, tendinites et rhumatismes.",
+                "duree": 20
+            },
+            {
+                "nom": "Néphrologie",
+                "description": "Prévention, diagnostic et suivi des insuffisances rénales et hypertension rénale.",
+                "duree": 20
+            },
+            {
+                "nom": "Psychiatrie & Santé Mentale",
+                "description": "Consultations spécialisées en santé mentale, anxieté, dépression et soutien psychologique.",
+                "duree": 30
+            }
+        ]
 
-        # 2. Création du questionnaire basé sur le barème officiel du document de cadrage
-        for code, data in BAREME_SYMPTOMS.items():
-            q = Questionnaire(
-                service_id=service_mg.id,
-                symptome_code=code,
-                symptome_libelle=data['libelle'],
-                points=data['points']
+        services_crees = {}
+        for sdata in SERVICES_DATA:
+            service = Service(
+                nom=sdata["nom"],
+                description=sdata["description"],
+                duree_moyenne_consultation=sdata["duree"]
             )
-            db.session.add(q)
+            db.session.add(service)
+            db.session.flush()
+            services_crees[sdata["nom"]] = service
+
+            # Création du questionnaire clinique pour chaque service
+            for code, qdata in BAREME_SYMPTOMS.items():
+                q = Questionnaire(
+                    service_id=service.id,
+                    symptome_code=code,
+                    symptome_libelle=qdata['libelle'],
+                    points=qdata['points']
+                )
+                db.session.add(q)
+
         db.session.commit()
+        service_mg = services_crees["Médecine Générale"]
 
         # 3. Création des Médecins
         medecin = Medecin(

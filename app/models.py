@@ -24,6 +24,33 @@ class Patient(db.Model):
     # Relation : un patient peut avoir plusieurs consultations
     consultations = db.relationship('Consultation', backref='patient', lazy=True)
 
+    @property
+    def civilite(self):
+        """Retourne la civilité appropriée selon le genre du patient."""
+        if self.genre == 'M':
+            return 'M.'
+        elif self.genre == 'F':
+            return 'Mme'
+        return 'M. / Mme'
+
+    @property
+    def telephone_formate(self):
+        """Mise en forme propre du numéro de téléphone avec l'indicatif pays."""
+        if not self.telephone:
+            return ''
+        tel = str(self.telephone).strip()
+        clean = ''.join(c for c in tel if c.isdigit() or c == '+')
+        if clean.startswith('+'):
+            country_code = clean[:4]
+            rest = clean[4:]
+            if rest:
+                blocks = [rest[i:i+2] for i in range(0, len(rest), 2)]
+                return f"{country_code} {' '.join(blocks)}"
+            return country_code
+        else:
+            blocks = [clean[i:i+2] for i in range(0, len(clean), 2)]
+            return ' '.join(blocks)
+
     # Méthode pour convertir l'objet Patient en dictionnaire (utile pour l'API JSON)
     def to_dict(self):
         """
@@ -34,6 +61,8 @@ class Patient(db.Model):
             'nom': self.nom,
             'prenom': self.prenom,
             'telephone': self.telephone,
+            'telephone_formate': self.telephone_formate,
+            'civilite': self.civilite,
             'date_naissance': self.date_naissance,
             'genre': self.genre
         }
@@ -131,6 +160,11 @@ class Consultation(db.Model):
     score = db.Column(db.Integer, nullable=False, default=0)  # Score calculé (somme des points des symptômes)
     priorite = db.Column(db.String(20), nullable=False)  # Priorité : 'Faible', 'Moyenne', 'Élevée', 'Urgence'
     symptomes_declares = db.Column(db.Text, nullable=True)  # Liste des symptômes déclarés (texte)
+
+    # Champs de géolocalisation d'urgence (optionnels)
+    adresse_patient = db.Column(db.Text, nullable=True)  # Adresse tapée ou point de repère
+    latitude = db.Column(db.Float, nullable=True)  # Coordonnée GPS latitude
+    longitude = db.Column(db.Float, nullable=True)  # Coordonnée GPS longitude
 
     @property
     def is_red_flag(self):

@@ -131,23 +131,47 @@
         <div class="wizard-step-content" id="step-2" style="display: none;">
             <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" data-i18n="inscription.step2.heading">Étape 2 : Sélection du Service Médical</h3>
 
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem;">
+                Sélectionnez le service médical adapté à votre consultation ou recherchez une spécialité spécifique ci-dessous.
+            </p>
+
+            <!-- Barre de Recherche Dynamique de Services -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--primary-light);">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                <input type="text" id="searchServiceInput" class="form-control" style="padding-left: 2.75rem; font-size: 0.95rem; height: 48px; border-radius: 12px; border: 2px solid var(--border-color);" placeholder="Rechercher une spécialité ou un service (ex: Pédiatrie, ORL, Cardiologie...)" onkeyup="filtrerServices()">
+            </div>
+
+            <!-- Grille des Services -->
             <div class="form-group">
-                <label class="form-label" data-i18n="inscription.step2.label">Choisissez la spécialité ou le service concerné *</label>
-                {% for service in services %}
-                    <div style="background: var(--surface-card-soft); border: 2px solid var(--primary); padding: 1.25rem; border-radius: 12px; margin-bottom: 1rem; cursor: pointer;">
-                        <label style="display: flex; align-items: center; gap: 1rem; cursor: pointer;">
-                            <input type="radio" name="service_id" value="{{ service.id }}" checked style="width: 20px; height: 20px; accent-color: var(--primary);">
-                            <div>
-                                <strong style="font-size: 1.1rem; color: var(--primary-light);">{{ service.nom }}</strong>
-                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">{{ service.description }}</p>
-                                <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; background: rgba(13,148,136,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary-light); margin-top: 0.5rem;">
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
-                                    <span data-i18n="inscription.step2.duration">Durée moyenne de consultation</span> : {{ service.duree_moyenne_consultation }} min
-                                </span>
-                            </div>
-                        </label>
-                    </div>
-                {% endfor %}
+                <div id="servicesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                    {% for service in services %}
+                        <div class="service-card-item" data-top5="{{ 'true' if loop.index <= 5 else 'false' }}" data-nom="{{ (service.nom or '')|lower }}" data-desc="{{ (service.description or '')|lower }}" style="background: var(--surface-card-soft); border: 2px solid var(--border-color); padding: 1.1rem; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; display: {{ 'block' if loop.index <= 5 else 'none' }};" onclick="selectionnerServiceCard(this)">
+                            <label style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; width: 100%; margin: 0;">
+                                <input type="radio" name="service_id" value="{{ service.id }}" {% if loop.first %}checked{% endif %} style="width: 20px; height: 20px; accent-color: var(--primary); margin-top: 0.2rem;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                        <strong style="font-size: 1.05rem; color: var(--primary-light);">{{ service.nom }}</strong>
+                                        {% if loop.index <= 5 %}
+                                            <span class="badge badge-moyenne" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; text-transform: uppercase;">DEMANDÉ</span>
+                                        {% endif %}
+                                    </div>
+                                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.5rem;">{{ service.description }}</p>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; background: rgba(13,148,136,0.15); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary-light);">
+                                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+                                        <span data-i18n="inscription.step2.duration">Durée</span> : {{ service.duree_moyenne_consultation }} min
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div id="noServiceFoundMessage" style="display: none; text-align: center; padding: 2rem; background: var(--surface-card-soft); border-radius: 12px; border: 1px dashed var(--border-color); margin-top: 1rem;">
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0.5rem;">Aucune spécialité ne correspond à votre recherche.</p>
+                    <small style="color: var(--text-muted);">Essayez avec un autre mot-clé (ex: <em>Pédiatrie, Dermatologie, Cœur...</em>)</small>
+                </div>
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
@@ -420,5 +444,51 @@ document.addEventListener('DOMContentLoaded', function () {
         texteLibreEl.addEventListener('input', updateEstimatedScore);
     }
 });
+
+function filtrerServices() {
+    const query = document.getElementById('searchServiceInput').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.service-card-item');
+    let countVisible = 0;
+
+    cards.forEach(card => {
+        const isTop5 = card.getAttribute('data-top5') === 'true';
+        const nom = card.getAttribute('data-nom') || '';
+        const desc = card.getAttribute('data-desc') || '';
+
+        if (query === '') {
+            // Si le champ de recherche est vide : réafficher UNIQUEMENT les 5 services les plus demandés
+            if (isTop5) {
+                card.style.display = 'block';
+                countVisible++;
+            } else {
+                card.style.display = 'none';
+            }
+        } else {
+            // Si une recherche est saisie : filtrer parmi TOUS les services du catalogue
+            if (nom.includes(query) || desc.includes(query)) {
+                card.style.display = 'block';
+                countVisible++;
+            } else {
+                card.style.display = 'none';
+            }
+        }
+    });
+
+    const noMsg = document.getElementById('noServiceFoundMessage');
+    if (noMsg) {
+        noMsg.style.display = countVisible === 0 ? 'block' : 'none';
+    }
+}
+
+function selectionnerServiceCard(cardEl) {
+    const radio = cardEl.querySelector('input[type="radio"]');
+    if (radio) {
+        radio.checked = true;
+    }
+    document.querySelectorAll('.service-card-item').forEach(c => {
+        c.style.borderColor = 'var(--border-color)';
+    });
+    cardEl.style.borderColor = 'var(--primary)';
+}
 </script>
 {% endblock %}

@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="glass-card" style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 
     <div class="feature-icon feature-icon-danger" style="margin: 0 auto 1.25rem auto;">
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -26,7 +27,7 @@
         </p>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; text-align: left;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; text-align: left;">
         <div style="background: var(--surface-card-soft); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
             <div style="font-size: 0.85rem; color: var(--text-muted);" data-i18n="urgence.patientName">Nom du Patient</div>
             <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-top: 0.25rem;">{{ consultation.patient.prenom }} {{ consultation.patient.nom }}</div>
@@ -37,14 +38,52 @@
         </div>
     </div>
 
+    <!-- Section Votre Localisation -->
+    <div style="background: var(--surface-card-soft); border: 1px solid var(--border-color); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; color: var(--text-main); font-weight: 700; font-size: 1.1rem;">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Votre localisation</span>
+            </div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Facilite votre prise en charge par les secours</span>
+        </div>
+
+        <!-- 1. Adresse / Point de repère manuel -->
+        <div style="margin-bottom: 1.25rem;">
+            <label for="adresseInput" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem;">
+                Adresse / point de repère (Optionnel) :
+            </label>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" id="adresseInput" class="form-control" style="flex: 1; min-width: 240px; font-size: 0.9rem; border-radius: 8px;" placeholder="Ex: Quartier Bè, près de la pharmacie Saint-Michel" value="{{ consultation.adresse_patient or '' }}" onchange="enregistrerAdresseTextuelle()">
+                <button type="button" class="btn btn-secondary btn-pill" onclick="enregistrerAdresseTextuelle()" style="font-size: 0.85rem; padding: 0.5rem 1rem;">Enregistrer</button>
+            </div>
+        </div>
+
+        <!-- 2. Géolocalisation GPS API -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+            <div>
+                <button type="button" id="btnGps" onclick="partagerPositionGPS()" class="btn btn-outline-danger btn-pill" style="gap: 0.5rem; font-size: 0.85rem;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                    <span>Partager ma position GPS</span>
+                </button>
+            </div>
+            <div id="gpsStatus" style="font-size: 0.85rem; color: var(--text-muted);">
+                {% if consultation.latitude and consultation.longitude %}
+                    <span style="color: #4ade80; font-weight: 600;">Position enregistrée ✓</span>
+                    <a href="https://www.google.com/maps?q={{ consultation.latitude }},{{ consultation.longitude }}" target="_blank" rel="noopener" style="color: #38bdf8; margin-left: 0.5rem; text-decoration: underline;">Voir sur Google Maps</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Simulated SMS Container -->
     <div style="background: var(--surface-terminal); border: 1px dashed rgba(239, 68, 68, 0.5); padding: 1.25rem; border-radius: 12px; text-align: left; margin-bottom: 2rem;">
         <div style="display: flex; align-items: center; gap: 0.5rem; color: #f87171; font-weight: 700; margin-bottom: 0.5rem;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span data-i18n="urgence.smsHeader">Alerte SMS / USSD simulée transmise au</span> {{ consultation.patient.telephone }}
+            <span data-i18n="urgence.smsHeader">Alerte SMS / USSD simulée transmise au</span> {{ consultation.patient.telephone_formate or consultation.patient.telephone }}
         </div>
-        <div style="font-family: monospace; font-size: 0.9rem; background: var(--surface-terminal-inner); padding: 0.75rem; border-radius: 8px; color: #fca5a5;">
-            "<span data-i18n="urgence.sms.prefix">PrioSanté ALERTE : M. / Mme</span> {{ consultation.patient.nom }}, <span data-i18n="urgence.sms.suffix">suite à vos symptômes critiques, veuillez vous présenter IMMÉDIATEMENT aux urgences de l'hôpital.</span>"
+        <div id="simulatedSmsText" style="font-family: monospace; font-size: 0.9rem; background: var(--surface-terminal-inner); padding: 0.75rem; border-radius: 8px; color: #fca5a5; line-height: 1.5;">
+            PrioSanté ALERTE : {{ consultation.patient.civilite }} {{ consultation.patient.prenom }} {{ consultation.patient.nom }}, suite à vos symptômes critiques, veuillez vous présenter IMMÉDIATEMENT aux urgences de l'hôpital.{% if consultation.adresse_patient %} Localisation : {{ consultation.adresse_patient }}{% endif %}{% if consultation.latitude and consultation.longitude %} — Position GPS : https://www.google.com/maps?q={{ consultation.latitude }},{{ consultation.longitude }}{% endif %}
         </div>
     </div>
 
@@ -151,5 +190,88 @@ document.addEventListener('keydown', function(e) {
         fermerModalAppelUrgences();
     }
 });
+
+function enregistrerAdresseTextuelle() {
+    var adresse = document.getElementById('adresseInput').value.trim();
+    envoyerLocalisation({ adresse: adresse });
+}
+
+function partagerPositionGPS() {
+    var btn = document.getElementById('btnGps');
+    var statusDiv = document.getElementById('gpsStatus');
+
+    if (!navigator.geolocation) {
+        if (statusDiv) {
+            statusDiv.innerHTML = '<span style="color: var(--text-muted);">Localisation non disponible, merci de renseigner votre adresse ci-dessus</span>';
+        }
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    if (statusDiv) statusDiv.innerHTML = '<span style="color: var(--text-muted);">Obtention de la position...</span>';
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            if (btn) btn.disabled = false;
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+            var adresse = document.getElementById('adresseInput').value.trim();
+
+            envoyerLocalisation({ adresse: adresse, latitude: lat, longitude: lng });
+        },
+        function(error) {
+            if (btn) btn.disabled = false;
+            if (statusDiv) {
+                statusDiv.innerHTML = '<span style="color: var(--text-muted);">Localisation non disponible, merci de renseigner votre adresse ci-dessus</span>';
+            }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+}
+
+function envoyerLocalisation(payload) {
+    var code = "{{ consultation.code_consultation }}";
+    var csrfToken = document.getElementById('csrfToken') ? document.getElementById('csrfToken').value : '';
+
+    fetch('/urgence/' + code + '/localisation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+            'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(function(res) {
+        if (!res.ok) {
+            throw new Error('Erreur HTTP ' + res.status);
+        }
+        return res.json();
+    })
+    .then(function(data) {
+        var btn = document.getElementById('btnGps');
+        if (btn) btn.disabled = false;
+
+        if (data && data.success) {
+            var statusDiv = document.getElementById('gpsStatus');
+            if (data.latitude !== null && data.latitude !== undefined && data.longitude !== null && data.longitude !== undefined) {
+                var mapsUrl = data.google_maps_url || ('https://www.google.com/maps?q=' + data.latitude + ',' + data.longitude);
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<span style="color: #4ade80; font-weight: 600;">Position enregistrée ✓</span> ' +
+                        '<a href="' + mapsUrl + '" target="_blank" rel="noopener" style="color: #38bdf8; margin-left: 0.5rem; text-decoration: underline;">Voir sur Google Maps</a>';
+                }
+            }
+            var smsBox = document.getElementById('simulatedSmsText');
+            if (smsBox && data.sms_text) {
+                smsBox.innerText = data.sms_text;
+            }
+        }
+    })
+    .catch(function(err) {
+        var btn = document.getElementById('btnGps');
+        if (btn) btn.disabled = false;
+        console.error('Erreur lors de l’enregistrement de la localisation:', err);
+    });
+}
 </script>
 {% endblock %}
