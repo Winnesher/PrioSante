@@ -112,7 +112,7 @@
             'inscription.js.needSymptom': 'Please check at least one symptom before submitting your request.',
             'inscription.js.fillFields': 'Please fill in your Last Name, First Name, Phone Number and Date of Birth before continuing.',
             'inscription.js.lettersOnly': 'Last Name and First Name must only contain letters.',
-            'inscription.js.invalidDobTodayOrFuture': "Today's date (present date) and future dates cannot be used as date of birth. Please select a valid past date of birth.",
+            'inscription.js.invalidDobTooRecent': 'The date of birth is too recent (less than 7 days ago). Please select your real date of birth.',
             'inscription.js.invalidDobTooOld': 'The date of birth is too far in the past (over 120 years ago). Please select a valid date of birth.',
             'inscription.js.invalidDob': 'Please select a valid date of birth before continuing.',
 

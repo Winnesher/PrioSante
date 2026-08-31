@@ -350,12 +350,16 @@ function validerDateNaissance(inputEl, notifyIfInvalid = false) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Comparaison avec la date d'aujourd'hui (le présent) et le futur
-    if (inputDate.getTime() >= today.getTime()) {
+    // La date de naissance doit dater d'au moins 7 jours avant aujourd'hui : rejette
+    // aujourd'hui, le futur, et les dates trop récentes pour être réalistes (ex. un
+    // nouveau-né de quelques jours), tout en restant compatible avec la Pédiatrie.
+    const MIN_JOURS_AVANT_AUJOURDHUI = 7;
+    const maxDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - MIN_JOURS_AVANT_AUJOURDHUI);
+    if (inputDate.getTime() > maxDate.getTime()) {
         if (notifyIfInvalid) {
             showValidationModal(window.PrioSanteI18n.t(
-                'inscription.js.invalidDobTodayOrFuture',
-                "La date d'aujourd'hui (date du présent) et les dates futures ne peuvent pas être choisies comme date de naissance. Veuillez bien sélectionner votre date de naissance dans le passé."
+                'inscription.js.invalidDobTooRecent',
+                "La date de naissance est trop récente (moins de 7 jours). Veuillez bien sélectionner votre date de naissance réelle."
             ));
         }
         return false;

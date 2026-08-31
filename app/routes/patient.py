@@ -8,10 +8,20 @@ NAME_PATTERN = re.compile(r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$")
 MAX_TENTATIVES_CRENEAU = 3
 
 
+# Seuil minimum de récence : une date de naissance à moins de 7 jours d'aujourd'hui
+# n'est pas réaliste pour une inscription (même pour un nouveau-né en Pédiatrie).
+MIN_JOURS_AVANT_AUJOURDHUI = 7
+
+
 def bornes_date_naissance():
-    """Retourne (min, max) autorisés pour la date de naissance : pas aujourd'hui ni le futur, pas plus de 120 ans."""
-    date_max = date.today() - timedelta(days=1)
-    date_min = date_max.replace(year=date_max.year - 120)
+    """Retourne (min, max) autorisés pour la date de naissance : pas aujourd'hui, le futur ni
+    une date trop récente (< 7 jours), pas plus de 120 ans."""
+    today = date.today()
+    date_max = today - timedelta(days=MIN_JOURS_AVANT_AUJOURDHUI)
+    try:
+        date_min = today.replace(year=today.year - 120)
+    except ValueError:
+        date_min = today.replace(month=2, day=28, year=today.year - 120)
     return date_min.isoformat(), date_max.isoformat()
 from app.database import db
 from app.models import Service, Patient, Consultation
@@ -57,7 +67,7 @@ def inscription():
                                     service_ouvert=service_est_ouvert())
 
         if date_naissance and not (date_min_naissance <= date_naissance <= date_max_naissance):
-            flash("Date de naissance invalide : la date ne peut pas être aujourd'hui, dans le futur ou dépasser 120 ans.", "danger")
+            flash("Date de naissance invalide : la date ne peut pas être aujourd'hui, dans le futur, dater de moins de 7 jours, ou dépasser 120 ans.", "danger")
             return render_template('patient/inscription.html', services=services, bareme=BAREME_SYMPTOMS,
                                     date_min_naissance=date_min_naissance, date_max_naissance=date_max_naissance,
                                     service_ouvert=service_est_ouvert())
